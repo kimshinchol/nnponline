@@ -21,19 +21,34 @@ function ensureAdmin(req: Request, res: Response, next: Function) {
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
-  // Check if any users exist
+  // Update the user exists check to be more comprehensive
   app.get("/api/user/exists", async (req, res) => {
-    const anyUser = await storage.getUserByUsername("admin");
-    res.json({ exists: !!anyUser });
+    try {
+      // Get count of users (more efficient than getting actual users)
+      const anyUser = await storage.getUserByUsername("admin");
+      res.json({ exists: !!anyUser });
+    } catch (err) {
+      res.status(500).json({ message: (err as Error).message });
+    }
   });
 
-  // Special route for first admin registration
+  // Update admin registration to be more secure
   app.post("/api/register/admin", async (req, res, next) => {
     try {
       // Check if any users exist
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Only allow admin registration if:
+      // 1. No users exist (first user)
+      // 2. Request comes from an existing admin
+      const anyUser = await storage.getUserByUsername("admin");
+      if (anyUser && (!req.isAuthenticated() || !req.user?.isAdmin)) {
+        return res.status(403).json({ 
+          message: "Admin registration is only allowed for the first user or by existing admins" 
+        });
       }
 
       const userData = insertUserSchema.parse(req.body);

@@ -34,7 +34,7 @@ export default function AuthPage() {
   const [isFirstUser, setIsFirstUser] = useState(false);
 
   useEffect(() => {
-    // Check if any users exist
+    // Check if any users exist only when the component mounts
     fetch('/api/user/exists')
       .then(res => res.json())
       .then(data => setIsFirstUser(!data.exists))
@@ -60,6 +60,7 @@ export default function AuthPage() {
   };
 
   const onRegister = (data: InsertUser) => {
+    // Only allow admin registration for the first user
     if (isFirstUser) {
       registerAdminMutation.mutate(data);
     } else {
@@ -74,14 +75,7 @@ export default function AuthPage() {
         <CardHeader className="space-y-8 items-center text-center">
           <div className="w-24 h-24 flex items-center justify-center">
             <img 
-              src={["/logo.png", "/assets/logo.png", "/client/src/assets/logo.png"].find(path => {
-                try {
-                  const url = new URL(path, window.location.origin);
-                  return true;
-                } catch {
-                  return false;
-                }
-              }) || "/logo.png"}
+              src="/logo.png"
               alt="N&P Logo" 
               className="w-full h-full object-contain"
               onError={(e) => {
@@ -137,13 +131,13 @@ export default function AuthPage() {
             <Dialog open={showRegister} onOpenChange={setShowRegister}>
               <DialogTrigger asChild>
                 <Button variant="link" className="text-gray-600">
-                  {isFirstUser ? "CREATE ADMIN ACCOUNT" : "CREATE ACCOUNT"}
+                  {isFirstUser ? "CREATE INITIAL ADMIN ACCOUNT" : "CREATE ACCOUNT"}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
-                    {isFirstUser ? "Create Admin Account" : "Create New Account"}
+                    {isFirstUser ? "Create Initial Admin Account" : "Create New Account"}
                   </DialogTitle>
                 </DialogHeader>
                 <Form {...registerForm}>
@@ -218,7 +212,7 @@ export default function AuthPage() {
                       {registerMutation.isPending || registerAdminMutation.isPending 
                         ? "Creating Account..." 
                         : isFirstUser 
-                          ? "Create Admin Account" 
+                          ? "Create Initial Admin Account" 
                           : "Create Account"}
                     </Button>
                   </form>
