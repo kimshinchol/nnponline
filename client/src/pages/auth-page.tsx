@@ -62,7 +62,15 @@ export default function AuthPage() {
           <div className="w-24 h-24 flex items-center justify-center">
             {/* Replace this with your logo image */}
             <img 
-              src="/logo.png" 
+              src={["/logo.png", "/assets/logo.png", "/client/src/assets/logo.png"].find(path => {
+                try {
+                  // Try to access the image
+                  new URL(path, window.location.origin);
+                  return true;
+                } catch {
+                  return false;
+                }
+              }) || "/logo.png"}
               alt="N&P Logo" 
               className="w-full h-full object-contain"
               onError={(e) => {
