@@ -60,7 +60,20 @@ export default function AuthPage() {
       <Card className="w-[400px] bg-white shadow-sm">
         <CardHeader className="space-y-8 items-center text-center">
           <div className="w-24 h-24 flex items-center justify-center">
-            <h1 className="text-4xl font-bold text-gray-600">N&P</h1>
+            {/* Replace this with your logo image */}
+            <img 
+              src="/logo.png" 
+              alt="N&P Logo" 
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.innerHTML = '<h1 class="text-4xl font-bold text-gray-600">N&P</h1>';
+                }
+              }}
+            />
           </div>
         </CardHeader>
         <CardContent>
