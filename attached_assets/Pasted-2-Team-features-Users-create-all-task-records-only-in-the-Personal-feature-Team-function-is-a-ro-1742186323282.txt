@@ -1,0 +1,16 @@
+2. Team features
+Users create all task records only in the Personal feature.
+Team function is a role that automatically aggregates and separates task lists created by individual users by team. The tasks of a total of 5 teams (PM/CM/CC/AT/MT) are separated by team and displayed at a glance. The order can be expressed sequentially from the top in the order of (PM/CM/CC/AT/MT).
+No modifications are made to the team. It simply collects and displays individual tasks.
+
+3. Project function
+There are cases where multiple teams collaborate on a specific project.
+In this case, it is as important to understand all tasks by project as it is to understand tasks by team. As with the team function, the task list created in the individual function is automatically aggregated and displayed separately by project. In the case of project names, incorrect aggregation may occur due to spacing, typos, etc. A fundamental countermeasure is needed for this part (e.g. Wouldn't it reduce the error if there is an auto-complete function in the existing DB when entering the project name?, Drop-down can be a problem if too much information accumulates. Need to think together)
+4. last day function
+Finally, when clicking on a specific date through the calendar, the tasks by project (not by person/team) for that day are automatically aggregated and saved.
+
+5. other
+Log out after login: Add a logout button to the dashboard to log out as needed.
+What to do if someone leaves the organization: Users cannot leave, and if someone leaves the organization, administrators can access their account and change their password to control access. We want to avoid issues with deleting existing data and errors when deleting an account.
+Design: We aimed to simplify the design as much as possible by using English, pictograms, etc. For task lists, we prioritize a tabular format, but we are open to better design suggestions. For tables, the table should be flexible enough to stretch vertically if the input field becomes too large. 
+Room for future improvements and further development: there are likely to be development updates and additional features as you use it. 
