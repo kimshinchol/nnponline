@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
-import { insertTaskSchema, insertProjectSchema } from "@shared/schema";
+import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 
 function ensureAuthenticated(req: Request, res: Response, next: Function) {
   if (req.isAuthenticated()) {
@@ -20,6 +20,37 @@ function ensureAdmin(req: Request, res: Response, next: Function) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
+
+  // Check if any users exist
+  app.get("/api/user/exists", async (req, res) => {
+    const anyUser = await storage.getUserByUsername("admin");
+    res.json({ exists: !!anyUser });
+  });
+
+  // Special route for first admin registration
+  app.post("/api/register/admin", async (req, res, next) => {
+    try {
+      // Check if any users exist
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const userData = insertUserSchema.parse(req.body);
+      const user = await storage.createUser({
+        ...userData,
+        isAdmin: true,
+        isApproved: true
+      });
+
+      req.login(user, (err) => {
+        if (err) return next(err);
+        res.status(201).json(user);
+      });
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
 
   // Admin routes
   app.post("/api/users/:id/approve", ensureAdmin, async (req, res) => {

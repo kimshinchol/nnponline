@@ -28,9 +28,18 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function AuthPage() {
-  const { user, loginMutation, registerMutation } = useAuth();
+  const { user, loginMutation, registerMutation, registerAdminMutation } = useAuth();
   const [, setLocation] = useLocation();
   const [showRegister, setShowRegister] = useState(false);
+  const [isFirstUser, setIsFirstUser] = useState(false);
+
+  useEffect(() => {
+    // Check if any users exist
+    fetch('/api/user/exists')
+      .then(res => res.json())
+      .then(data => setIsFirstUser(!data.exists))
+      .catch(() => setIsFirstUser(false));
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -51,7 +60,11 @@ export default function AuthPage() {
   };
 
   const onRegister = (data: InsertUser) => {
-    registerMutation.mutate(data);
+    if (isFirstUser) {
+      registerAdminMutation.mutate(data);
+    } else {
+      registerMutation.mutate(data);
+    }
     setShowRegister(false);
   };
 
@@ -60,11 +73,9 @@ export default function AuthPage() {
       <Card className="w-[400px] bg-white shadow-sm">
         <CardHeader className="space-y-8 items-center text-center">
           <div className="w-24 h-24 flex items-center justify-center">
-            {/* Replace this with your logo image */}
             <img 
               src={["/logo.png", "/assets/logo.png", "/client/src/assets/logo.png"].find(path => {
                 try {
-                  // Try to access the image
                   const url = new URL(path, window.location.origin);
                   return true;
                 } catch {
@@ -126,12 +137,14 @@ export default function AuthPage() {
             <Dialog open={showRegister} onOpenChange={setShowRegister}>
               <DialogTrigger asChild>
                 <Button variant="link" className="text-gray-600">
-                  CREATE ACCOUNT
+                  {isFirstUser ? "CREATE ADMIN ACCOUNT" : "CREATE ACCOUNT"}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Account</DialogTitle>
+                  <DialogTitle>
+                    {isFirstUser ? "Create Admin Account" : "Create New Account"}
+                  </DialogTitle>
                 </DialogHeader>
                 <Form {...registerForm}>
                   <form
@@ -200,9 +213,13 @@ export default function AuthPage() {
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={registerMutation.isPending}
+                      disabled={registerMutation.isPending || registerAdminMutation.isPending}
                     >
-                      {registerMutation.isPending ? "Creating Account..." : "Create Account"}
+                      {registerMutation.isPending || registerAdminMutation.isPending 
+                        ? "Creating Account..." 
+                        : isFirstUser 
+                          ? "Create Admin Account" 
+                          : "Create Account"}
                     </Button>
                   </form>
                 </Form>
