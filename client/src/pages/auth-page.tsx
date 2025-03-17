@@ -65,7 +65,7 @@ export default function AuthPage() {
               src={["/logo.png", "/assets/logo.png", "/client/src/assets/logo.png"].find(path => {
                 try {
                   // Try to access the image
-                  new URL(path, window.location.origin);
+                  const url = new URL(path, window.location.origin);
                   return true;
                 } catch {
                   return false;
@@ -74,6 +74,7 @@ export default function AuthPage() {
               alt="N&P Logo" 
               className="w-full h-full object-contain"
               onError={(e) => {
+                console.log("Logo failed to load, falling back to text");
                 const target = e.target as HTMLImageElement;
                 target.style.display = 'none';
                 const parent = target.parentElement;
