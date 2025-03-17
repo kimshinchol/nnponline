@@ -9,7 +9,22 @@ import HomePage from "@/pages/home-page";
 import PersonalView from "@/pages/personal-view";
 import TeamView from "@/pages/team-view";
 import ProjectView from "@/pages/project-view";
+import AdminPage from "@/pages/admin-page";
 import { ProtectedRoute } from "./lib/protected-route";
+import { Redirect } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+
+
+// Admin-only protected route component
+function AdminRoute({ path, component: Component }: { path: string; component: () => React.JSX.Element }) {
+  const { user } = useAuth();
+
+  if (!user?.isAdmin) {
+    return <Redirect to="/" />;
+  }
+
+  return <ProtectedRoute path={path} component={Component} />;
+}
 
 function Router() {
   return (
@@ -19,6 +34,7 @@ function Router() {
       <ProtectedRoute path="/personal" component={PersonalView} />
       <ProtectedRoute path="/team" component={TeamView} />
       <ProtectedRoute path="/project" component={ProjectView} />
+      <AdminRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>
   );

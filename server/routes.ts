@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Task routes
   app.post("/api/tasks", ensureAuthenticated, async (req, res) => {
     try {
-      const taskData = insertTaskSchema.parse({ ...req.body, userId: req.user.id });
+      const taskData = insertTaskSchema.parse({ ...req.body, userId: req.user!.id });
       const task = await storage.createTask(taskData);
       res.status(201).json(task);
     } catch (err) {
@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/tasks/user", ensureAuthenticated, async (req, res) => {
-    const tasks = await storage.getUserTasks(req.user.id);
+    const tasks = await storage.getUserTasks(req.user!.id);
     res.json(tasks);
   });
 
@@ -89,6 +89,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/projects", ensureAuthenticated, async (req, res) => {
     const projects = await storage.getProjects();
     res.json(projects);
+  });
+
+  // New Backup and Archive Routes
+  app.get("/api/backup", ensureAdmin, async (req, res) => {
+    try {
+      const backup = await storage.createBackup();
+      res.json(backup);
+    } catch (err) {
+      res.status(500).json({ message: (err as Error).message });
+    }
+  });
+
+  app.post("/api/backup/restore", ensureAdmin, async (req, res) => {
+    try {
+      await storage.restoreFromBackup(req.body);
+      res.sendStatus(200);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  app.post("/api/tasks/archive", ensureAdmin, async (req, res) => {
+    try {
+      const filters = {
+        before: req.body.before ? new Date(req.body.before) : undefined,
+        status: req.body.status,
+        projectId: req.body.projectId ? parseInt(req.body.projectId) : undefined
+      };
+      const archivedTasks = await storage.archiveTasks(filters);
+      res.json(archivedTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  app.get("/api/tasks/archived", ensureAdmin, async (req, res) => {
+    try {
+      const filters = {
+        before: req.query.before ? new Date(req.query.before as string) : undefined,
+        status: req.query.status as string | undefined,
+        projectId: req.query.projectId ? parseInt(req.query.projectId as string) : undefined
+      };
+      const archivedTasks = await storage.getArchivedTasks(filters);
+      res.json(archivedTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
   });
 
   const httpServer = createServer(app);

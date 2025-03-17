@@ -4,12 +4,27 @@ import createMemoryStore from "memorystore";
 
 const MemoryStore = createMemoryStore(session);
 
+// Define backup data structure
+interface BackupData {
+  users: User[];
+  tasks: Task[];
+  projects: Project[];
+  timestamp: Date;
+}
+
+// Define archive filters
+interface ArchiveFilters {
+  before?: Date;
+  status?: string;
+  projectId?: number;
+}
+
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   approveUser(id: number): Promise<User>;
-  
+
   createTask(task: InsertTask): Promise<Task>;
   getTask(id: number): Promise<Task | undefined>;
   getUserTasks(userId: number): Promise<Task[]>;
@@ -17,10 +32,16 @@ export interface IStorage {
   getProjectTasks(projectId: number): Promise<Task[]>;
   updateTaskStatus(id: number, status: string): Promise<Task>;
   deleteTask(id: number): Promise<void>;
-  
+
   createProject(project: InsertProject): Promise<Project>;
   getProjects(): Promise<Project[]>;
-  
+
+  // New backup and archive methods
+  createBackup(): Promise<BackupData>;
+  restoreFromBackup(backup: BackupData): Promise<void>;
+  archiveTasks(filters: ArchiveFilters): Promise<Task[]>;
+  getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]>;
+
   sessionStore: session.Store;
 }
 
@@ -28,6 +49,7 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private tasks: Map<number, Task>;
   private projects: Map<number, Project>;
+  private archivedTasks: Map<number, Task>;
   public sessionStore: session.Store;
   private currentId: { users: number; tasks: number; projects: number };
 
@@ -35,6 +57,7 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.tasks = new Map();
     this.projects = new Map();
+    this.archivedTasks = new Map();
     this.currentId = { users: 1, tasks: 1, projects: 1 };
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
@@ -119,6 +142,78 @@ export class MemStorage implements IStorage {
 
   async getProjects(): Promise<Project[]> {
     return Array.from(this.projects.values());
+  }
+
+  async createBackup(): Promise<BackupData> {
+    return {
+      users: Array.from(this.users.values()),
+      tasks: Array.from(this.tasks.values()),
+      projects: Array.from(this.projects.values()),
+      timestamp: new Date()
+    };
+  }
+
+  async restoreFromBackup(backup: BackupData): Promise<void> {
+    // Clear existing data
+    this.users.clear();
+    this.tasks.clear();
+    this.projects.clear();
+
+    // Restore from backup
+    backup.users.forEach(user => this.users.set(user.id, user));
+    backup.tasks.forEach(task => this.tasks.set(task.id, task));
+    backup.projects.forEach(project => this.projects.set(project.id, project));
+
+    // Update currentId to be higher than any existing ID
+    this.currentId = {
+      users: Math.max(...backup.users.map(u => u.id), 0) + 1,
+      tasks: Math.max(...backup.tasks.map(t => t.id), 0) + 1,
+      projects: Math.max(...backup.projects.map(p => p.id), 0) + 1
+    };
+  }
+
+  async archiveTasks(filters: ArchiveFilters): Promise<Task[]> {
+    const tasksToArchive = Array.from(this.tasks.values()).filter(task => {
+      if (filters.before && new Date(task.createdAt) > filters.before) {
+        return false;
+      }
+      if (filters.status && task.status !== filters.status) {
+        return false;
+      }
+      if (filters.projectId && task.projectId !== filters.projectId) {
+        return false;
+      }
+      return true;
+    });
+
+    // Move tasks to archive
+    tasksToArchive.forEach(task => {
+      this.tasks.delete(task.id);
+      this.archivedTasks.set(task.id, task);
+    });
+
+    return tasksToArchive;
+  }
+
+  async getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]> {
+    let archivedTasks = Array.from(this.archivedTasks.values());
+
+    if (filters) {
+      archivedTasks = archivedTasks.filter(task => {
+        if (filters.before && new Date(task.createdAt) > filters.before) {
+          return false;
+        }
+        if (filters.status && task.status !== filters.status) {
+          return false;
+        }
+        if (filters.projectId && task.projectId !== filters.projectId) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    return archivedTasks;
   }
 }
 
