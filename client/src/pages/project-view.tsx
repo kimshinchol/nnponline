@@ -243,7 +243,13 @@ export default function ProjectView() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <TaskList tasks={projectTasks} />
+                      <TaskList
+                        tasks={projectTasks}
+                        projects={projects}
+                        showAuthor={true}
+                        showActions={false}
+                        showProject={false}
+                      />
                     </CardContent>
                   </Card>
                 );

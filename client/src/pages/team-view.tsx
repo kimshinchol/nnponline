@@ -43,12 +43,17 @@ export default function TeamView() {
                 <div className="mb-4">
                   <h2 className="text-xl font-semibold">{team} Team Tasks</h2>
                 </div>
-                <TaskList
-                  tasks={teamQueries[index].data || []}
-                  isLoading={teamQueries[index].isLoading}
-                  projects={projects}
-                  showAuthor={true}
-                />
+                {
+                  (
+                    <TaskList
+                      tasks={teamQueries[index].data || []}
+                      isLoading={teamQueries[index].isLoading}
+                      projects={projects}
+                      showAuthor={true}
+                      showActions={false}
+                    />
+                  )
+                }
               </TabsContent>
             ))}
           </Tabs>
