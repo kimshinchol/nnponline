@@ -20,8 +20,8 @@ export function Navigation() {
 
   return (
     <nav className="fixed h-screen w-64 bg-sidebar border-r p-4 flex flex-col">
-      <div className="flex items-center justify-center mb-8">
-        <h1 className="text-2xl font-bold text-sidebar-foreground">Work Journal</h1>
+      <div className="flex items-center mb-8 pl-2">
+        <img src="/logo.png" alt="Logo" className="h-8" />
       </div>
 
       <div className="flex flex-col space-y-2">
@@ -40,7 +40,25 @@ export function Navigation() {
             className="w-full justify-start"
           >
             <UserIcon className="mr-2 h-4 w-4" />
-            Personal Tasks
+            Tasks
+          </Button>
+        </Link>
+        <Link href="/team">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start"
+          >
+            <UsersIcon className="mr-2 h-4 w-4" />
+            Team
+          </Button>
+        </Link>
+        <Link href="/project">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start"
+          >
+            <FolderIcon className="mr-2 h-4 w-4" />
+            Project
           </Button>
         </Link>
         <Link href="/scheduler">
@@ -52,24 +70,6 @@ export function Navigation() {
             Scheduler
           </Button>
         </Link>
-        <Link href="/team">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-          >
-            <UsersIcon className="mr-2 h-4 w-4" />
-            Team View
-          </Button>
-        </Link>
-        <Link href="/project">
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start"
-          >
-            <FolderIcon className="mr-2 h-4 w-4" />
-            Project View
-          </Button>
-        </Link>
         {/* Show Admin link only for admin users */}
         {user?.isAdmin && (
           <Link href="/admin">
@@ -78,7 +78,7 @@ export function Navigation() {
               className="w-full justify-start"
             >
               <ShieldIcon className="mr-2 h-4 w-4" />
-              Admin Dashboard
+              Admin
             </Button>
           </Link>
         )}
