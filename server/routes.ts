@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth, hashPassword } from "./auth";  // Add hashPassword import
+import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 
@@ -32,8 +32,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update admin registration to be more secure
-  app.post("/api/register/admin", async (req, res, next) => {
+  // Regular user registration (non-admin)
+  app.post("/api/register", async (req, res) => {
+    try {
+      const existingUser = await storage.getUserByUsername(req.body.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const userData = insertUserSchema.parse(req.body);
+      const hashedPassword = await hashPassword(req.body.password);
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+        isAdmin: false, // Ensure regular users can't be admin
+        isApproved: false // Regular users need approval
+      });
+
+      res.status(201).json(user);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  // Admin-only registration route
+  app.post("/api/web_admin/register", async (req, res, next) => {
     try {
       // Check if any users exist
       const existingUser = await storage.getUserByUsername(req.body.username);
@@ -52,7 +75,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userData = insertUserSchema.parse(req.body);
-      // Hash the password before storing
       const hashedPassword = await hashPassword(req.body.password);
       const user = await storage.createUser({
         ...userData,

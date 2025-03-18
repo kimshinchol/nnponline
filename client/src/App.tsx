@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
+import WebAdminAuthPage from "@/pages/web-admin-auth";
 import HomePage from "@/pages/home-page";
 import PersonalView from "@/pages/personal-view";
 import TeamView from "@/pages/team-view";
@@ -30,6 +31,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
+      <Route path="/web_admin" component={WebAdminAuthPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/personal" component={PersonalView} />
       <ProtectedRoute path="/scheduler" component={SchedulerView} />
