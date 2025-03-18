@@ -27,7 +27,11 @@ export default function WebAdminAuthPage() {
     queryKey: ["/api/user/exists"],
   });
 
-  const form = useForm<InsertUser>({
+  const loginForm = useForm<Pick<InsertUser, "username" | "password">>({
+    resolver: zodResolver(insertUserSchema.pick({ username: true, password: true })),
+  });
+
+  const registerForm = useForm<InsertUser>({
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
       username: "",
@@ -35,10 +39,6 @@ export default function WebAdminAuthPage() {
       email: "",
       team: "PM",
     },
-  });
-
-  const loginForm = useForm<Pick<InsertUser, "username" | "password">>({
-    resolver: zodResolver(insertUserSchema.pick({ username: true, password: true })),
   });
 
   const handleLogin = (data: Pick<InsertUser, "username" | "password">) => {
@@ -143,13 +143,13 @@ export default function WebAdminAuthPage() {
                 <DialogHeader>
                   <DialogTitle>Create Initial Admin Account</DialogTitle>
                 </DialogHeader>
-                <Form {...form}>
+                <Form {...registerForm}>
                   <form
-                    onSubmit={form.handleSubmit(handleRegister)}
+                    onSubmit={registerForm.handleSubmit(handleRegister)}
                     className="space-y-4"
                   >
                     <FormField
-                      control={form.control}
+                      control={registerForm.control}
                       name="username"
                       render={({ field }) => (
                         <FormItem>
@@ -161,12 +161,36 @@ export default function WebAdminAuthPage() {
                       )}
                     />
                     <FormField
-                      control={form.control}
+                      control={registerForm.control}
                       name="password"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
                             <Input type="password" placeholder="PASSWORD" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input type="email" placeholder="Email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="team"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Team" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
