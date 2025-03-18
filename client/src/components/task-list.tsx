@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface TaskListProps {
   tasks: Task[];
@@ -121,7 +121,7 @@ export function TaskList({
                     size="sm"
                     onClick={() => onDelete(task.id)}
                   >
-                    Delete
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </TableCell>
