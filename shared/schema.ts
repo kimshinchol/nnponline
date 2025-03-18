@@ -26,7 +26,6 @@ export const tasks = pgTable("tasks", {
   status: text("status").notNull().default("pending"),
   userId: integer("user_id").notNull(),
   projectId: integer("project_id"),
-  dueDate: timestamp("due_date"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -44,9 +43,7 @@ export const insertTaskSchema = createInsertSchema(tasks).extend({
   status: z.enum(["pending", "in-progress", "completed"]).default("pending"),
   description: z.string().nullable().optional(),
   projectId: z.number().nullable().optional(),
-  dueDate: z.string().nullable().optional(),
   userId: z.number().optional(),
-  scheduledDate: z.string().nullable().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
