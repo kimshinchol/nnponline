@@ -83,10 +83,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Task routes
   app.post("/api/tasks", ensureAuthenticated, async (req, res) => {
     try {
-      const taskData = insertTaskSchema.parse({ ...req.body, userId: req.user!.id });
+      console.log("Creating task with data:", req.body);
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+        status: req.body.status || "pending",
+        createdAt: new Date()
+      });
+
       const task = await storage.createTask(taskData);
+      console.log("Task created successfully:", task);
       res.status(201).json(task);
     } catch (err) {
+      console.error("Error creating task:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });

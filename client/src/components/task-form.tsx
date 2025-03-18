@@ -35,13 +35,26 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
   const form = useForm<InsertTask>({
     resolver: zodResolver(insertTaskSchema),
     defaultValues: {
+      title: "",
+      description: "",
       status: "pending",
+      projectId: null,
+      dueDate: null,
     },
   });
 
+  const handleSubmit = (data: InsertTask) => {
+    // Ensure projectId is either a number or null
+    const formattedData = {
+      ...data,
+      projectId: data.projectId ? Number(data.projectId) : null,
+    };
+    onSubmit(formattedData);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
@@ -49,7 +62,7 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input placeholder="Task title" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -63,7 +76,11 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea 
+                  placeholder="Task description"
+                  {...field}
+                  value={field.value || ''}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -75,14 +92,18 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
           name="projectId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project</FormLabel>
-              <Select onValueChange={(v) => field.onChange(parseInt(v))} value={field.value?.toString()}>
+              <FormLabel>Project (Optional)</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value ? Number(value) : null)}
+                value={field.value?.toString() || ""}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value="">No Project</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id.toString()}>
                       {project.name}
@@ -100,7 +121,7 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
           name="dueDate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Due Date</FormLabel>
+              <FormLabel>Due Date (Optional)</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -112,7 +133,7 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP")
+                        format(new Date(field.value), "PPP")
                       ) : (
                         <span>Pick a date</span>
                       )}
@@ -123,11 +144,12 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date?.toISOString())}
                     disabled={(date) =>
                       date < new Date() || date < new Date("1900-01-01")
                     }
+                    initialFocus
                   />
                 </PopoverContent>
               </Popover>
@@ -136,7 +158,7 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
           )}
         />
 
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Creating..." : "Create Task"}
         </Button>
       </form>
