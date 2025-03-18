@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
+import passport from 'passport'; // Import passport
 
 function ensureAuthenticated(req: Request, res: Response, next: Function) {
   if (req.isAuthenticated()) {
@@ -117,7 +118,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied. Admin privileges required." });
       }
 
-      next();
+      // Use passport authenticate manually for admin login
+      passport.authenticate("local", (err: any, user: any, info: any) => {
+        if (err) { return next(err); }
+        if (!user) { return res.status(401).json({ message: info.message }); }
+
+        req.logIn(user, (err) => {
+          if (err) { return next(err); }
+          return res.json(user);
+        });
+      })(req, res, next);
+
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
     }

@@ -48,10 +48,12 @@ export default function WebAdminAuthPage() {
         password: data.password,
       },
       {
-        onSuccess: () => setLocation("/"),
+        onSuccess: () => {
+          setLocation("/admin");
+        },
         onError: (error) => {
           toast({
-            title: "Login failed",
+            title: "Admin Login Failed",
             description: error.message,
             variant: "destructive",
           });
