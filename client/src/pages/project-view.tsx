@@ -154,9 +154,22 @@ export default function ProjectView() {
                             .map((project) => (
                               <CommandItem
                                 key={project.id}
-                                onSelect={() => setProjectName(project.name)}
+                                className="flex justify-between items-center"
                               >
-                                {project.name}
+                                <span onClick={() => setProjectName(project.name)}>
+                                  {project.name}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteProject(project.id);
+                                  }}
+                                  className="h-8 w-8"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </CommandItem>
                             ))}
                         </CommandGroup>
