@@ -8,12 +8,11 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 
 export default function WebAdminAuthPage() {
@@ -56,13 +55,26 @@ export default function WebAdminAuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-[400px]">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">
-            {!userExists?.exists ? "Create Initial Admin Account" : "Admin Login"}
-          </CardTitle>
-        </CardHeader>
+    <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5]">
+      <Card className="w-[400px] bg-white shadow-sm">
+        <CardHeader className="space-y-8 items-center text-center">
+          <div className="w-24 h-24 flex items-center justify-center">
+            <img 
+              src="/logo.png"
+              alt="N&P Logo" 
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                console.log("Logo failed to load, falling back to text");
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.innerHTML = '<h1 class="text-4xl font-bold text-gray-600">N&P</h1>';
+                }
+              }}
+            />
+          </div>
+          </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
@@ -71,9 +83,8 @@ export default function WebAdminAuthPage() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter username" {...field} />
+                      <Input placeholder="ID" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -85,11 +96,10 @@ export default function WebAdminAuthPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter password"
+                        placeholder="PASSWORD"
                         {...field}
                       />
                     </FormControl>
@@ -105,7 +115,6 @@ export default function WebAdminAuthPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -123,7 +132,6 @@ export default function WebAdminAuthPage() {
                     name="team"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Team</FormLabel>
                         <FormControl>
                           <Input
                             type="text"
@@ -140,13 +148,13 @@ export default function WebAdminAuthPage() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-gray-600 hover:bg-gray-700"
                 disabled={loginMutation.isPending || registerAdminMutation.isPending}
               >
                 {!userExists?.exists
                   ? registerAdminMutation.isPending
                     ? "Creating..."
-                    : "Create Admin Account"
+                    : "Create Initial Admin Account"
                   : loginMutation.isPending
                   ? "Logging in..."
                   : "Login as Admin"}
