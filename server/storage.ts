@@ -36,6 +36,7 @@ export interface IStorage {
   sessionStore: session.Store;
   getUsers(): Promise<Map<number, User>>;
   getAllTasks(): Promise<Task[]>;
+  updateUser(id: number, updates: Partial<User>): Promise<User>;
 }
 
 // Define backup data structure
@@ -206,6 +207,15 @@ export class DatabaseStorage implements IStorage {
   async getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]> {
     // Since we don't have a separate archive table yet, return empty array
     return [];
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 }
 

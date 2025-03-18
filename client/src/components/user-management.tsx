@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { User } from "@shared/schema";
+import { User, insertUserSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -15,12 +15,26 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 
 export function UserManagement() {
   const { toast } = useToast();
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
   // Fetch pending users
   const { data: pendingUsers = [] } = useQuery<User[]>({
@@ -55,6 +69,33 @@ export function UserManagement() {
     },
   });
 
+  // Edit user mutation
+  const editMutation = useMutation({
+    mutationFn: async (data: { id: number; updates: Partial<User> }) => {
+      const res = await apiRequest("PATCH", `/api/users/${data.id}`, data.updates);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users/approved"] });
+      toast({
+        title: "User updated",
+        description: "User information has been updated successfully.",
+      });
+      setEditingUser(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete user mutation
   const deleteMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -80,8 +121,34 @@ export function UserManagement() {
     },
   });
 
+  const editForm = useForm<Partial<User>>({
+    resolver: zodResolver(
+      insertUserSchema
+        .omit({ password: true })
+        .partial()
+    ),
+  });
+
   const handleApprove = (userId: number) => {
     approveMutation.mutate(userId);
+  };
+
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    editForm.reset({
+      username: user.username,
+      email: user.email,
+      team: user.team,
+    });
+  };
+
+  const handleEditSubmit = (data: Partial<User>) => {
+    if (editingUser) {
+      editMutation.mutate({
+        id: editingUser.id,
+        updates: data,
+      });
+    }
   };
 
   const handleDelete = (userId: number) => {
@@ -161,6 +228,13 @@ export function UserManagement() {
                 </TableCell>
                 <TableCell className="space-x-2">
                   <Button
+                    variant="outline"
+                    onClick={() => handleEdit(user)}
+                    disabled={user.isAdmin}
+                  >
+                    Edit
+                  </Button>
+                  <Button
                     variant="destructive"
                     onClick={() => handleDelete(user.id)}
                     disabled={deleteMutation.isPending || user.isAdmin}
@@ -180,6 +254,65 @@ export function UserManagement() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="team"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Team</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                disabled={editMutation.isPending}
+                className="w-full"
+              >
+                {editMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
