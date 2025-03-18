@@ -152,7 +152,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProjects(): Promise<Project[]> {
-    return await db.select().from(projects);
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.isActive, true));
   }
 
   async getAllTasks(): Promise<Task[]> {
@@ -220,10 +223,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProject(id: number): Promise<void> {
-    // First delete all tasks associated with this project
-    await db.delete(tasks).where(eq(tasks.projectId, id));
-    // Then delete the project
-    await db.delete(projects).where(eq(projects.id, id));
+    // Instead of deleting, just mark as inactive
+    await db
+      .update(projects)
+      .set({ isActive: false })
+      .where(eq(projects.id, id));
   }
 }
 
