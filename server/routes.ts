@@ -176,6 +176,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get approved users
+  app.get("/api/users/approved", ensureAdmin, async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      const approvedUsers = Array.from(users.values()).filter(user => user.isApproved);
+      res.json(approvedUsers);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  // Delete user
+  app.delete("/api/users/:id", ensureAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.isAdmin) {
+        return res.status(403).json({ message: "Cannot delete admin users" });
+      }
+
+      await storage.deleteUser(userId);
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   // Task routes
   app.post("/api/tasks", ensureAuthenticated, async (req, res) => {
     try {
