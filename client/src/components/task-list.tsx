@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Celebration } from "@/components/ui/celebration";
 
 interface TaskListProps {
@@ -126,7 +126,7 @@ export function TaskList({
               {showProject && <TableCell>{getProjectName(task.projectId)}</TableCell>}
               {showAuthor && <TableCell>{task.username || "Unknown"}</TableCell>}
               {showActions && (
-                <TableCell>
+                <TableCell className="space-x-2">
                   {onEdit && (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -149,6 +149,15 @@ export function TaskList({
                         />
                       </DialogContent>
                     </Dialog>
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => onDelete(task.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   )}
                 </TableCell>
               )}
