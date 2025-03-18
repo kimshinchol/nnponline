@@ -13,6 +13,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
 import { Pencil, Trash2 } from "lucide-react";
+import { Celebration } from "@/components/ui/celebration";
 
 interface TaskListProps {
   tasks: Task[];
@@ -26,17 +27,18 @@ interface TaskListProps {
   isLoading?: boolean;
 }
 
-export function TaskList({ 
-  tasks, 
-  onStatusChange, 
-  onDelete, 
+export function TaskList({
+  tasks,
+  onStatusChange,
+  onDelete,
   onEdit,
   projects = [],
   showAuthor = false,
   showActions = true,
   showProject = true,
-  isLoading 
+  isLoading
 }: TaskListProps) {
+  const [showCelebration, setShowCelebration] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const getStatusColor = (status: string) => {
@@ -69,12 +71,24 @@ export function TaskList({
     }
   };
 
+  const handleStatusChange = (taskId: number, status: string) => {
+    if (onStatusChange) {
+      if (status === "completed") {
+        setShowCelebration(true);
+      }
+      onStatusChange(taskId, status);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
 
   return (
     <>
+      {showCelebration && (
+        <Celebration onComplete={() => setShowCelebration(false)} />
+      )}
       <Table>
         <TableHeader>
           <TableRow>
@@ -103,7 +117,7 @@ export function TaskList({
                   {onStatusChange && (
                     <select
                       value={task.status}
-                      onChange={(e) => onStatusChange(task.id, e.target.value)}
+                      onChange={(e) => handleStatusChange(task.id, e.target.value)}
                       className="mr-2 p-1 rounded border"
                     >
                       <option value="pending">Pending</option>
