@@ -249,20 +249,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the getUserTasks endpoint to support date filtering
+  // Update the getUserTasks endpoint to support KST date filtering
   app.get("/api/tasks/user", ensureAuthenticated, async (req, res) => {
     try {
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      // If date is provided, filter tasks by date
+      // If date is provided, filter tasks by KST date
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
+        // Convert filter date to KST
+        const kstOffset = 9 * 60; // KST is UTC+9
+        const kstFilterDate = new Date(filterDate.getTime() + kstOffset * 60000);
+
         const filteredTasks = tasks.filter(task => {
+          // Convert task date to KST
           const taskDate = new Date(task.createdAt);
+          const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
+
           return (
-            taskDate.getFullYear() === filterDate.getFullYear() &&
-            taskDate.getMonth() === filterDate.getMonth() &&
-            taskDate.getDate() === filterDate.getDate()
+            kstTaskDate.getFullYear() === kstFilterDate.getFullYear() &&
+            kstTaskDate.getMonth() === kstFilterDate.getMonth() &&
+            kstTaskDate.getDate() === kstFilterDate.getDate()
           );
         });
         return res.json(filteredTasks);

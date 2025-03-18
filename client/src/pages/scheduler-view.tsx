@@ -19,19 +19,23 @@ export default function SchedulerView() {
     enabled: !!selectedDate,
   });
 
-  // Filter tasks for the selected date and organize by project
+  // Filter tasks for the selected date and organize by project, using KST
   const tasksByProject = tasks?.reduce((acc, task) => {
     if (!selectedDate) return acc;
 
+    const kstOffset = 9 * 60; // KST is UTC+9
     const taskDate = new Date(task.createdAt);
-    const isSameDate = 
-      taskDate.getUTCFullYear() === selectedDate.getUTCFullYear() &&
-      taskDate.getUTCMonth() === selectedDate.getUTCMonth() &&
-      taskDate.getUTCDate() === selectedDate.getUTCDate();
+    const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
+    const kstSelectedDate = new Date(selectedDate.getTime() + kstOffset * 60000);
+
+    const isSameDate =
+      kstTaskDate.getFullYear() === kstSelectedDate.getFullYear() &&
+      kstTaskDate.getMonth() === kstSelectedDate.getMonth() &&
+      kstTaskDate.getDate() === kstSelectedDate.getDate();
 
     if (!isSameDate) return acc;
 
-    const projectId = task.projectId || 'unassigned';
+    const projectId = task.projectId || "unassigned";
     if (!acc[projectId]) {
       acc[projectId] = [];
     }
@@ -50,7 +54,7 @@ export default function SchedulerView() {
             {/* Calendar Section */}
             <Card>
               <CardHeader>
-                <CardTitle>Select Date</CardTitle>
+                <CardTitle>Select Date (KST)</CardTitle>
               </CardHeader>
               <CardContent>
                 <Calendar
@@ -81,28 +85,30 @@ export default function SchedulerView() {
             ))}
 
             {/* Unassigned Tasks */}
-            {tasksByProject?.['unassigned'] && tasksByProject['unassigned'].length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Unassigned Tasks</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TaskList
-                    tasks={tasksByProject['unassigned']}
-                    projects={projects}
-                    isLoading={isLoading}
-                    showActions={false}
-                    showProject={false}
-                  />
-                </CardContent>
-              </Card>
-            )}
+            {tasksByProject?.["unassigned"] &&
+              tasksByProject["unassigned"].length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Unassigned Tasks</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <TaskList
+                      tasks={tasksByProject["unassigned"]}
+                      projects={projects}
+                      isLoading={isLoading}
+                      showActions={false}
+                      showProject={false}
+                    />
+                  </CardContent>
+                </Card>
+              )}
 
-            {!isLoading && (!tasksByProject || Object.keys(tasksByProject).length === 0) && (
-              <p className="text-center text-muted-foreground">
-                No tasks found for {format(selectedDate, 'MMMM d, yyyy')}
-              </p>
-            )}
+            {!isLoading &&
+              (!tasksByProject || Object.keys(tasksByProject).length === 0) && (
+                <p className="text-center text-muted-foreground">
+                  No tasks found for {format(selectedDate, "MMMM d, yyyy")} (KST)
+                </p>
+              )}
           </div>
         </div>
       </main>
