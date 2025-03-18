@@ -67,11 +67,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username already exists" });
       }
 
+      // Get count of admin users
+      const users = await storage.getUsers();
+      const adminCount = Array.from(users.values()).filter(u => u.isAdmin).length;
+
       // Only allow admin registration if:
       // 1. No users exist (first user)
-      // 2. Request comes from an existing admin
-      const anyUser = await storage.getUserByUsername("admin");
-      if (anyUser && (!req.isAuthenticated() || !req.user?.isAdmin)) {
+      // 2. Only one admin exists and request comes from an existing admin
+      if (adminCount >= 2) {
+        return res.status(403).json({
+          message: "Maximum number of admin accounts (2) has been reached"
+        });
+      }
+
+      if (adminCount > 0 && (!req.isAuthenticated() || !req.user?.isAdmin)) {
         return res.status(403).json({
           message: "Admin registration is only allowed for the first user or by existing admins"
         });
@@ -116,12 +125,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
   // Admin routes
   app.post("/api/users/:id/approve", ensureAdmin, async (req, res) => {
     try {
       const user = await storage.approveUser(parseInt(req.params.id));
       res.json(user);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  // Add route to get pending users
+  app.get("/api/users/pending", ensureAdmin, async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      const pendingUsers = Array.from(users.values()).filter(user => !user.isApproved && !user.isAdmin);
+      res.json(pendingUsers);
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
     }

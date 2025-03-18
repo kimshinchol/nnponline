@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 
 export default function WebAdminAuthPage() {
-  const { loginMutation, registerMutation } = useAuth();
+  const { loginMutation, registerAdminMutation } = useAuth();
   const [, setLocation] = useLocation();
 
   // Check if any users exist
@@ -38,7 +38,7 @@ export default function WebAdminAuthPage() {
   const handleSubmit = (data: InsertUser) => {
     if (!userExists?.exists) {
       // First admin registration
-      registerMutation.mutate(data, {
+      registerAdminMutation.mutate(data, {
         onSuccess: () => setLocation("/"),
       });
     } else {
@@ -141,10 +141,10 @@ export default function WebAdminAuthPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loginMutation.isPending || registerMutation.isPending}
+                disabled={loginMutation.isPending || registerAdminMutation.isPending}
               >
                 {!userExists?.exists
-                  ? registerMutation.isPending
+                  ? registerAdminMutation.isPending
                     ? "Creating..."
                     : "Create Admin Account"
                   : loginMutation.isPending

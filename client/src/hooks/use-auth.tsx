@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Do not set user data on registration - require admin approval
       toast({
         title: "Registration successful",
-        description: "Your account has been created. Please wait for admin approval before logging in.",
+        description: "Your account has been created. Please wait for an administrator to approve your account.",
       });
     },
     onError: (error: Error) => {
