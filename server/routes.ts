@@ -284,9 +284,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update the team tasks endpoint to include user information
   app.get("/api/tasks/team/:team", ensureAuthenticated, async (req, res) => {
     try {
-      const tasks = await storage.getTeamTasks(req.params.team);
       // Get all users to map usernames to tasks
       const users = Array.from((await storage.getUsers()).values());
+      const teamUsers = users.filter(user => user.team === req.params.team);
+      const teamUserIds = teamUsers.map(user => user.id);
+
+      // Get all tasks
+      const allTasks = await storage.getAllTasks();
+
+      // Filter tasks for team members
+      const tasks = allTasks.filter(task => teamUserIds.includes(task.userId));
 
       // Add username to each task
       const tasksWithUsernames = tasks.map(task => {
@@ -299,6 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(tasksWithUsernames);
     } catch (err) {
+      console.error("Error fetching team tasks:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });
