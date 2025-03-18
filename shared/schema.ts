@@ -23,7 +23,7 @@ export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  status: text("status").notNull().default("pending"),
+  status: text("status").notNull().default("작업전"),
   userId: integer("user_id").notNull(),
   projectId: integer("project_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -40,7 +40,7 @@ export const insertUserSchema = createInsertSchema(users).extend({
 export const insertProjectSchema = createInsertSchema(projects);
 
 export const insertTaskSchema = createInsertSchema(tasks).extend({
-  status: z.enum(["pending", "in-progress", "completed"]).default("pending"),
+  status: z.enum(["작업전", "작업중", "완료"]).default("작업전"),
   description: z.string().nullable().optional(),
   projectId: z.number().nullable().optional(),
   userId: z.number().optional(),

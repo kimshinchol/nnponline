@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Celebration } from "@/components/ui/celebration";
 
 interface TaskListProps {
@@ -43,15 +43,24 @@ export function TaskList({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending":
+      case "작업전":
         return "bg-yellow-500";
-      case "in-progress":
-        return "bg-blue-500";
-      case "completed":
+      case "작업중":
+        return "bg-red-500";
+      case "완료":
         return "bg-green-500";
       default:
         return "bg-gray-500";
     }
+  };
+
+  const getNextStatus = (currentStatus: string) => {
+    const statusFlow = {
+      "작업전": "작업중",
+      "작업중": "완료",
+      "완료": "작업전"
+    };
+    return statusFlow[currentStatus as keyof typeof statusFlow] || "작업전";
   };
 
   const getProjectName = (projectId: number | null) => {
@@ -71,12 +80,13 @@ export function TaskList({
     }
   };
 
-  const handleStatusChange = (taskId: number, status: string) => {
+  const handleStatusClick = (taskId: number, currentStatus: string) => {
     if (onStatusChange) {
-      if (status === "completed") {
+      const newStatus = getNextStatus(currentStatus);
+      if (newStatus === "완료") {
         setShowCelebration(true);
       }
-      onStatusChange(taskId, status);
+      onStatusChange(taskId, newStatus);
     }
   };
 
@@ -106,25 +116,17 @@ export function TaskList({
               <TableCell className="font-medium">{task.title}</TableCell>
               <TableCell>{task.description}</TableCell>
               <TableCell>
-                <Badge className={getStatusColor(task.status)}>
+                <Badge 
+                  className={`${getStatusColor(task.status)} cursor-pointer`}
+                  onClick={() => handleStatusClick(task.id, task.status)}
+                >
                   {task.status}
                 </Badge>
               </TableCell>
               {showProject && <TableCell>{getProjectName(task.projectId)}</TableCell>}
               {showAuthor && <TableCell>{task.username || "Unknown"}</TableCell>}
               {showActions && (
-                <TableCell className="space-x-2">
-                  {onStatusChange && (
-                    <select
-                      value={task.status}
-                      onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                      className="mr-2 p-1 rounded border"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  )}
+                <TableCell>
                   {onEdit && (
                     <Dialog>
                       <DialogTrigger asChild>
@@ -148,16 +150,7 @@ export function TaskList({
                       </DialogContent>
                     </Dialog>
                   )}
-                  {onDelete && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => onDelete(task.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </TableCell>
+                  </TableCell>
               )}
             </TableRow>
           ))}
