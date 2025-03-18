@@ -14,8 +14,11 @@ export default function TeamView() {
   const teamQueries = TEAMS.map((team) =>
     useQuery<Task[]>({
       queryKey: ["/api/tasks/team", team],
-      queryFn: ({ queryKey: [, team] }) =>
-        fetch(`/api/tasks/team/${team}`).then((r) => r.json()),
+      queryFn: async ({ queryKey: [, team] }) => {
+        const res = await fetch(`/api/tasks/team/${team}`);
+        if (!res.ok) throw new Error("Failed to fetch team tasks");
+        return res.json();
+      },
     }),
   );
 
@@ -44,6 +47,7 @@ export default function TeamView() {
                   tasks={teamQueries[index].data || []}
                   isLoading={teamQueries[index].isLoading}
                   projects={projects}
+                  showAuthor={true}
                 />
               </TabsContent>
             ))}

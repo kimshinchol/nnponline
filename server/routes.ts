@@ -105,9 +105,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(tasks);
   });
 
+  // Update the team tasks endpoint to include user information
   app.get("/api/tasks/team/:team", ensureAuthenticated, async (req, res) => {
-    const tasks = await storage.getTeamTasks(req.params.team);
-    res.json(tasks);
+    try {
+      const tasks = await storage.getTeamTasks(req.params.team);
+      // Get all users to map usernames to tasks
+      const users = Array.from((await storage.getUsers()).values());
+
+      // Add username to each task
+      const tasksWithUsernames = tasks.map(task => {
+        const user = users.find(u => u.id === task.userId);
+        return {
+          ...task,
+          username: user?.username || 'Unknown'
+        };
+      });
+
+      res.json(tasksWithUsernames);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
   });
 
   app.get("/api/tasks/project/:projectId", ensureAuthenticated, async (req, res) => {
@@ -160,6 +177,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const projects = await storage.getProjects();
     res.json(projects);
   });
+
+  // Update the project tasks endpoint to properly handle project tasks
+  app.get("/api/tasks/project", ensureAuthenticated, async (req, res) => {
+    try {
+      const tasks = await storage.getAllTasks();
+      const users = Array.from((await storage.getUsers()).values());
+
+      // Add username to each task and filter only tasks with projectId
+      const projectTasks = tasks
+        .filter(task => task.projectId !== null)
+        .map(task => {
+          const user = users.find(u => u.id === task.userId);
+          return {
+            ...task,
+            username: user?.username || 'Unknown'
+          };
+        });
+
+      res.json(projectTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
 
   // New Backup and Archive Routes
   app.get("/api/backup", ensureAdmin, async (req, res) => {

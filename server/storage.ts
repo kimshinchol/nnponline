@@ -44,6 +44,8 @@ export interface IStorage {
   getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]>;
 
   sessionStore: session.Store;
+  getUsers(): Promise<Map<number, User>>;
+  getAllTasks(): Promise<Task[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -245,6 +247,14 @@ export class MemStorage implements IStorage {
     }
 
     return archivedTasks;
+  }
+
+  async getUsers(): Promise<Map<number, User>> {
+    return this.users;
+  }
+
+  async getAllTasks(): Promise<Task[]> {
+    return Array.from(this.tasks.values());
   }
 }
 

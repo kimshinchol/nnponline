@@ -20,6 +20,7 @@ interface TaskListProps {
   onDelete?: (taskId: number) => void;
   onEdit?: (taskId: number, updatedTask: Partial<Task>) => void;
   projects?: { id: number; name: string }[];
+  showAuthor?: boolean;
   isLoading?: boolean;
 }
 
@@ -29,6 +30,7 @@ export function TaskList({
   onDelete, 
   onEdit,
   projects = [],
+  showAuthor = false,
   isLoading 
 }: TaskListProps) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -75,6 +77,7 @@ export function TaskList({
             <TableHead>Title</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Project</TableHead>
+            {showAuthor && <TableHead>Author</TableHead>}
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -85,6 +88,9 @@ export function TaskList({
               <TableCell className="font-medium">{task.title}</TableCell>
               <TableCell>{task.description}</TableCell>
               <TableCell>{getProjectName(task.projectId)}</TableCell>
+              {showAuthor && (
+                <TableCell>{task.username || "Unknown"}</TableCell>
+              )}
               <TableCell>
                 <Badge className={getStatusColor(task.status)}>
                   {task.status}
