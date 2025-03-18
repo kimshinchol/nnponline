@@ -37,31 +37,40 @@ export default function WebAdminAuthPage() {
     },
   });
 
-  const handleSubmit = (data: InsertUser) => {
-    if (!userExists?.exists) {
-      // First admin registration
-      registerAdminMutation.mutate(data, {
+  const loginForm = useForm<Pick<InsertUser, "username" | "password">>({
+    resolver: zodResolver(insertUserSchema.pick({ username: true, password: true })),
+  });
+
+  const handleLogin = (data: Pick<InsertUser, "username" | "password">) => {
+    loginMutation.mutate(
+      {
+        username: data.username,
+        password: data.password,
+      },
+      {
         onSuccess: () => setLocation("/"),
-      });
-    } else {
-      // Admin login
-      loginMutation.mutate(
-        {
-          username: data.username,
-          password: data.password,
-        },
-        {
-          onSuccess: () => setLocation("/"),
-          onError: (error) => {
-            toast({
-              title: "Login failed",
-              description: error.message,
-              variant: "destructive",
-            });
-          }
+        onError: (error) => {
+          toast({
+            title: "Login failed",
+            description: error.message,
+            variant: "destructive",
+          });
         }
-      );
-    }
+      }
+    );
+  };
+
+  const handleRegister = (data: InsertUser) => {
+    registerAdminMutation.mutate(data, {
+      onSuccess: () => setLocation("/"),
+      onError: (error) => {
+        toast({
+          title: "Admin Registration failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   return (
@@ -84,12 +93,12 @@ export default function WebAdminAuthPage() {
               }}
             />
           </div>
-          </CardHeader>
+        </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <Form {...loginForm}>
+            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
               <FormField
-                control={form.control}
+                control={loginForm.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
@@ -100,9 +109,8 @@ export default function WebAdminAuthPage() {
                   </FormItem>
                 )}
               />
-
               <FormField
-                control={form.control}
+                control={loginForm.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
@@ -137,7 +145,7 @@ export default function WebAdminAuthPage() {
                 </DialogHeader>
                 <Form {...form}>
                   <form
-                    onSubmit={form.handleSubmit(handleSubmit)}
+                    onSubmit={form.handleSubmit(handleRegister)}
                     className="space-y-4"
                   >
                     <FormField
