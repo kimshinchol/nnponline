@@ -100,9 +100,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update the getUserTasks endpoint to support date filtering
   app.get("/api/tasks/user", ensureAuthenticated, async (req, res) => {
-    const tasks = await storage.getUserTasks(req.user!.id);
-    res.json(tasks);
+    try {
+      const tasks = await storage.getUserTasks(req.user!.id);
+
+      // If date is provided, filter tasks by date
+      if (req.query.date) {
+        const filterDate = new Date(req.query.date as string);
+        const filteredTasks = tasks.filter(task => {
+          const taskDate = new Date(task.createdAt);
+          return (
+            taskDate.getFullYear() === filterDate.getFullYear() &&
+            taskDate.getMonth() === filterDate.getMonth() &&
+            taskDate.getDate() === filterDate.getDate()
+          );
+        });
+        return res.json(filteredTasks);
+      }
+
+      res.json(tasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
   });
 
   // Update the team tasks endpoint to include user information

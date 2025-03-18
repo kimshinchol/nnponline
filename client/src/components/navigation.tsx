@@ -7,6 +7,7 @@ import {
   FolderIcon,
   LogOutIcon,
   ShieldIcon,
+  CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +41,15 @@ export function Navigation() {
           >
             <UserIcon className="mr-2 h-4 w-4" />
             Personal Tasks
+          </Button>
+        </Link>
+        <Link href="/scheduler">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start"
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            Scheduler
           </Button>
         </Link>
         <Link href="/team">
