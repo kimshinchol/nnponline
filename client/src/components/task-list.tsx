@@ -117,7 +117,7 @@ export function TaskList({
               <TableCell>{task.description}</TableCell>
               <TableCell>
                 <Badge 
-                  className={`${getStatusColor(task.status)} cursor-pointer`}
+                  className={`${getStatusColor(task.status)} cursor-pointer min-w-[60px] text-center`}
                   onClick={() => handleStatusClick(task.id, task.status)}
                 >
                   {task.status}
@@ -150,7 +150,7 @@ export function TaskList({
                       </DialogContent>
                     </Dialog>
                   )}
-                  </TableCell>
+                </TableCell>
               )}
             </TableRow>
           ))}
