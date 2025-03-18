@@ -28,18 +28,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function AuthPage() {
-  const { user, loginMutation, registerMutation, registerAdminMutation } = useAuth();
+  const { user, loginMutation, registerMutation } = useAuth();
   const [, setLocation] = useLocation();
   const [showRegister, setShowRegister] = useState(false);
-  const [isFirstUser, setIsFirstUser] = useState(false);
-
-  useEffect(() => {
-    // Check if any users exist only when the component mounts
-    fetch('/api/user/exists')
-      .then(res => res.json())
-      .then(data => setIsFirstUser(!data.exists))
-      .catch(() => setIsFirstUser(false));
-  }, []);
 
   useEffect(() => {
     if (user) {
@@ -60,12 +51,7 @@ export default function AuthPage() {
   };
 
   const onRegister = (data: InsertUser) => {
-    // Only allow admin registration for the first user
-    if (isFirstUser) {
-      registerAdminMutation.mutate(data);
-    } else {
-      registerMutation.mutate(data);
-    }
+    registerMutation.mutate(data);
     setShowRegister(false);
   };
 
@@ -122,7 +108,7 @@ export default function AuthPage() {
                 className="w-full bg-gray-600 hover:bg-gray-700"
                 disabled={loginMutation.isPending}
               >
-                OK
+                {loginMutation.isPending ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>
@@ -131,14 +117,12 @@ export default function AuthPage() {
             <Dialog open={showRegister} onOpenChange={setShowRegister}>
               <DialogTrigger asChild>
                 <Button variant="link" className="text-gray-600">
-                  {isFirstUser ? "CREATE INITIAL ADMIN ACCOUNT" : "CREATE ACCOUNT"}
+                  CREATE ACCOUNT
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>
-                    {isFirstUser ? "Create Initial Admin Account" : "Create New Account"}
-                  </DialogTitle>
+                  <DialogTitle>Create New Account</DialogTitle>
                 </DialogHeader>
                 <Form {...registerForm}>
                   <form
@@ -207,14 +191,13 @@ export default function AuthPage() {
                     <Button
                       type="submit"
                       className="w-full"
-                      disabled={registerMutation.isPending || registerAdminMutation.isPending}
+                      disabled={registerMutation.isPending}
                     >
-                      {registerMutation.isPending || registerAdminMutation.isPending 
-                        ? "Creating Account..." 
-                        : isFirstUser 
-                          ? "Create Initial Admin Account" 
-                          : "Create Account"}
+                      {registerMutation.isPending ? "Creating Account..." : "Create Account"}
                     </Button>
+                    <p className="text-sm text-muted-foreground text-center">
+                      After registration, an administrator will need to approve your account before you can log in.
+                    </p>
                   </form>
                 </Form>
               </DialogContent>

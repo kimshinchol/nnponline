@@ -45,11 +45,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
-        isAdmin: false, // Ensure regular users can't be admin
-        isApproved: false // Regular users need approval
+        isAdmin: false, // Regular users can't be admin
+        isApproved: false // All new users start unapproved
       });
 
-      res.status(201).json(user);
+      res.status(201).json({
+        ...user,
+        message: "Registration successful. Please wait for admin approval to log in."
+      });
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
     }
@@ -91,6 +94,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: (err as Error).message });
     }
   });
+
+  // Admin login must check isAdmin flag
+  app.post("/api/login", async (req, res, next) => {
+    try {
+      const user = await storage.getUserByUsername(req.body.username);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+
+      // Add approval check
+      if (!user.isApproved) {
+        return res.status(403).json({
+          message: "Your account is pending approval. Please wait for an administrator to approve your account."
+        });
+      }
+
+      next();
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
 
   // Admin routes
   app.post("/api/users/:id/approve", ensureAdmin, async (req, res) => {
