@@ -57,6 +57,12 @@ export function TaskList({
     }
   };
 
+  const getProjectName = (projectId: number | null) => {
+    if (!projectId) return "No Project";
+    const project = projects.find(p => p.id === projectId);
+    return project ? project.name : "Unknown Project";
+  };
+
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
@@ -68,6 +74,7 @@ export function TaskList({
           <TableRow>
             <TableHead>Title</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead>Project</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -77,6 +84,7 @@ export function TaskList({
             <TableRow key={task.id}>
               <TableCell className="font-medium">{task.title}</TableCell>
               <TableCell>{task.description}</TableCell>
+              <TableCell>{getProjectName(task.projectId)}</TableCell>
               <TableCell>
                 <Badge className={getStatusColor(task.status)}>
                   {task.status}
