@@ -19,6 +19,19 @@ function ensureAdmin(req: Request, res: Response, next: Function) {
   res.status(403).json({ message: "Forbidden" });
 }
 
+// Add helper function at the top of the file, after imports
+function isTaskFromToday(taskDate: Date): boolean {
+  const kstOffset = 9 * 60; // KST is UTC+9
+  const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
+  const nowKST = new Date(Date.now() + kstOffset * 60000);
+
+  return (
+    taskKST.getFullYear() === nowKST.getFullYear() &&
+    taskKST.getMonth() === nowKST.getMonth() &&
+    taskKST.getDate() === nowKST.getDate()
+  );
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
@@ -249,20 +262,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the getUserTasks endpoint to support KST date filtering
+  // Update getUserTasks endpoint
   app.get("/api/tasks/user", ensureAuthenticated, async (req, res) => {
     try {
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      // If date is provided, filter tasks by KST date
+      // If date is provided (for scheduler), use that date for filtering
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
-        // Convert filter date to KST
-        const kstOffset = 9 * 60; // KST is UTC+9
+        const kstOffset = 9 * 60;
         const kstFilterDate = new Date(filterDate.getTime() + kstOffset * 60000);
 
         const filteredTasks = tasks.filter(task => {
-          // Convert task date to KST
           const taskDate = new Date(task.createdAt);
           const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
 
@@ -275,27 +286,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(filteredTasks);
       }
 
-      res.json(tasks);
+      // Otherwise, only return today's tasks (KST)
+      const todaysTasks = tasks.filter(task => isTaskFromToday(new Date(task.createdAt)));
+      res.json(todaysTasks);
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
     }
   });
 
-  // Update the team tasks endpoint to include user information
+  // Update team tasks endpoint
   app.get("/api/tasks/team/:team", ensureAuthenticated, async (req, res) => {
     try {
-      // Get all users to map usernames to tasks
       const users = Array.from((await storage.getUsers()).values());
       const teamUsers = users.filter(user => user.team === req.params.team);
       const teamUserIds = teamUsers.map(user => user.id);
 
-      // Get all tasks
       const allTasks = await storage.getAllTasks();
 
-      // Filter tasks for team members
-      const tasks = allTasks.filter(task => teamUserIds.includes(task.userId));
+      // Filter tasks for team members and today only (KST)
+      const tasks = allTasks.filter(task =>
+        teamUserIds.includes(task.userId) &&
+        isTaskFromToday(new Date(task.createdAt))
+      );
 
-      // Add username to each task
       const tasksWithUsernames = tasks.map(task => {
         const user = users.find(u => u.id === task.userId);
         return {
@@ -368,9 +381,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = await storage.getAllTasks();
       const users = Array.from((await storage.getUsers()).values());
 
-      // Add username to each task and filter only tasks with projectId
+      // Add username to each task and filter only today's tasks with projectId
       const projectTasks = tasks
-        .filter(task => task.projectId !== null)
+        .filter(task =>
+          task.projectId !== null &&
+          isTaskFromToday(new Date(task.createdAt))
+        )
         .map(task => {
           const user = users.find(u => u.id === task.userId);
           return {
