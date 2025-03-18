@@ -42,7 +42,10 @@ export default function PersonalView() {
       }
     },
     onSuccess: () => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
       toast({
         title: "Success",
         description: "Task created successfully",
@@ -63,7 +66,10 @@ export default function PersonalView() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
       toast({
         title: "Success",
         description: "Task updated successfully",
@@ -77,7 +83,10 @@ export default function PersonalView() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
     },
   });
 
@@ -86,7 +95,10 @@ export default function PersonalView() {
       await apiRequest("DELETE", `/api/tasks/${id}`);
     },
     onSuccess: () => {
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
       toast({
         title: "Success",
         description: "Task deleted successfully",

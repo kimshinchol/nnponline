@@ -7,6 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const TEAMS = ["PM", "CM", "CC", "AT", "MT"];
 
 export default function TeamView() {
+  const { data: projects } = useQuery<{ id: number; name: string }[]>({
+    queryKey: ["/api/projects"],
+  });
+
   const teamQueries = TEAMS.map((team) =>
     useQuery<Task[]>({
       queryKey: ["/api/tasks/team", team],
@@ -39,6 +43,7 @@ export default function TeamView() {
                 <TaskList
                   tasks={teamQueries[index].data || []}
                   isLoading={teamQueries[index].isLoading}
+                  projects={projects}
                 />
               </TabsContent>
             ))}
