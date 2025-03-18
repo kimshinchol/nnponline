@@ -54,8 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (response) => {
+      // Do not set user data on registration - require admin approval
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created. Please wait for admin approval before logging in.",
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -68,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerAdminMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
-      const res = await apiRequest("POST", "/api/register/admin", credentials);
+      const res = await apiRequest("POST", "/api/web_admin/register", credentials);
       return await res.json();
     },
     onSuccess: (user: SelectUser) => {
