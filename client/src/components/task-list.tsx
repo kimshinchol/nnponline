@@ -117,7 +117,7 @@ export function TaskList({
               <TableCell>{task.description}</TableCell>
               <TableCell>
                 <Badge 
-                  className={`${getStatusColor(task.status)} cursor-pointer min-w-[60px] text-center`}
+                  className={`${getStatusColor(task.status)} cursor-pointer min-w-[60px] text-center inline-flex justify-center items-center`}
                   onClick={() => handleStatusClick(task.id, task.status)}
                 >
                   {task.status}
