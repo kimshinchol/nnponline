@@ -12,9 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
-import { Pencil, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Celebration } from "@/components/ui/celebration";
-import { format } from "date-fns";
 
 interface TaskListProps {
   tasks: Task[];
@@ -81,11 +80,6 @@ export function TaskList({
     }
   };
 
-  const formatDate = (date: string | null) => {
-    if (!date) return null;
-    return format(new Date(date), "MMM d, yyyy");
-  };
-
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
@@ -102,8 +96,6 @@ export function TaskList({
             <TableHead>Description</TableHead>
             <TableHead>Status</TableHead>
             {showProject && <TableHead>Project</TableHead>}
-            <TableHead>Scheduled For</TableHead>
-            <TableHead>Due Date</TableHead>
             {showAuthor && <TableHead>Author</TableHead>}
             {showActions && <TableHead>Actions</TableHead>}
           </TableRow>
@@ -119,22 +111,6 @@ export function TaskList({
                 </Badge>
               </TableCell>
               {showProject && <TableCell>{getProjectName(task.projectId)}</TableCell>}
-              <TableCell>
-                {task.scheduledDate && (
-                  <div className="flex items-center">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formatDate(task.scheduledDate)}
-                  </div>
-                )}
-              </TableCell>
-              <TableCell>
-                {task.dueDate && (
-                  <div className="flex items-center">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formatDate(task.dueDate)}
-                  </div>
-                )}
-              </TableCell>
               {showAuthor && <TableCell>{task.username || "Unknown"}</TableCell>}
               {showActions && (
                 <TableCell className="space-x-2">
