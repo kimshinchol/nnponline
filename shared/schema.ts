@@ -45,6 +45,7 @@ export const insertTaskSchema = createInsertSchema(tasks).extend({
   projectId: z.number().nullable().optional(),
   dueDate: z.string().nullable().optional(),
   userId: z.number().optional(),
+  scheduledDate: z.string().nullable().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

@@ -12,6 +12,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -19,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface TaskFormProps {
   onSubmit: (data: InsertTask) => void;
@@ -35,6 +44,8 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
       description: initialData?.description || "",
       status: initialData?.status || "pending",
       projectId: initialData?.projectId || null,
+      dueDate: initialData?.dueDate || null,
+      scheduledDate: initialData?.scheduledDate || null,
     },
   });
 
@@ -42,6 +53,8 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
     const formattedData = {
       ...data,
       projectId: data.projectId ? Number(data.projectId) : null,
+      dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+      scheduledDate: data.scheduledDate ? new Date(data.scheduledDate).toISOString() : null,
     };
     onSubmit(formattedData);
   };
@@ -76,6 +89,86 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
                   value={field.value || ''}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="scheduledDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Schedule For</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(new Date(field.value), "PPP")
+                      ) : (
+                        <span>Schedule for a specific date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date?.toISOString() ?? null)}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="dueDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Due Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(new Date(field.value), "PPP")
+                      ) : (
+                        <span>Pick a due date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date?.toISOString() ?? null)}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
