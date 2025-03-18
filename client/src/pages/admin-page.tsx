@@ -54,7 +54,7 @@ export default function AdminPage() {
     mutationFn: async () => {
       const response = await apiRequest("GET", "/api/backup");
       const backup = await response.json();
-      
+
       // Create and download backup file
       const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
       const url = window.URL.createObjectURL(blob);
@@ -147,7 +147,7 @@ export default function AdminPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-      
+
       {/* Backup Section */}
       <Card>
         <CardHeader>
@@ -158,6 +158,8 @@ export default function AdminPage() {
           <Button
             onClick={() => createBackupMutation.mutate()}
             disabled={createBackupMutation.isPending}
+            className="w-full md:w-auto"
+            size="lg"
           >
             {createBackupMutation.isPending ? "Creating Backup..." : "Create Backup"}
           </Button>
@@ -172,6 +174,9 @@ export default function AdminPage() {
             <Button
               onClick={handleRestore}
               disabled={!selectedBackupFile || restoreBackupMutation.isPending}
+              className="w-full md:w-auto"
+              variant="outline"
+              size="lg"
             >
               {restoreBackupMutation.isPending ? "Restoring..." : "Restore Backup"}
             </Button>
@@ -183,7 +188,7 @@ export default function AdminPage() {
       <Card>
         <CardHeader>
           <CardTitle>Archive Tasks</CardTitle>
-          <CardDescription>Archive old or completed tasks</CardDescription>
+          <CardDescription>Archive old or completed tasks to keep your workspace organized</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...archiveForm}>
@@ -230,6 +235,8 @@ export default function AdminPage() {
               <Button
                 type="submit"
                 disabled={archiveTasksMutation.isPending}
+                className="w-full md:w-auto"
+                size="lg"
               >
                 {archiveTasksMutation.isPending ? "Archiving Tasks..." : "Archive Tasks"}
               </Button>
