@@ -13,9 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -71,32 +69,6 @@ export default function ProjectView() {
     },
   });
 
-  // Delete project mutation
-  const deleteProjectMutation = useMutation({
-    mutationFn: async (projectId: number) => {
-      const res = await apiRequest("DELETE", `/api/projects/${projectId}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
-      toast({
-        title: "Success",
-        description: "Project deleted successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleCreateProject = () => {
     if (!projectName.trim()) {
       toast({
@@ -107,12 +79,6 @@ export default function ProjectView() {
       return;
     }
     createProjectMutation.mutate({ name: projectName });
-  };
-
-  const handleDeleteProject = (projectId: number) => {
-    if (confirm("Are you sure you want to delete this project? All associated tasks will also be deleted.")) {
-      deleteProjectMutation.mutate(projectId);
-    }
   };
 
   return (
@@ -134,49 +100,11 @@ export default function ProjectView() {
                   <DialogTitle>Create New Project</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="projectName">Project Name</Label>
-                    <Command>
-                      <CommandInput
-                        id="projectName"
-                        placeholder="Enter project name..."
-                        value={projectName}
-                        onValueChange={setProjectName}
-                      />
-                      {projects && projects.length > 0 && (
-                        <CommandGroup>
-                          {projects
-                            .filter((p) =>
-                              p.name
-                                .toLowerCase()
-                                .includes(projectName.toLowerCase())
-                            )
-                            .map((project) => (
-                              <CommandItem
-                                key={project.id}
-                                className="flex justify-between items-center"
-                              >
-                                <span onClick={() => setProjectName(project.name)}>
-                                  {project.name}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteProject(project.id);
-                                  }}
-                                  className="h-8 w-8"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </CommandItem>
-                            ))}
-                        </CommandGroup>
-                      )}
-                      <CommandEmpty>No matching projects found.</CommandEmpty>
-                    </Command>
-                  </div>
+                  <CommandInput
+                    placeholder="Enter project name..."
+                    value={projectName}
+                    onValueChange={setProjectName}
+                  />
                   <Button
                     onClick={handleCreateProject}
                     disabled={createProjectMutation.isPending}
@@ -209,7 +137,7 @@ export default function ProjectView() {
                 );
                 return (
                   <Card key={projectId}>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader>
                       <div>
                         <CardTitle>{project?.name || "Untitled Project"}</CardTitle>
                         <CardDescription>
@@ -217,14 +145,6 @@ export default function ProjectView() {
                           {projectTasks.length !== 1 ? "s" : ""}
                         </CardDescription>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteProject(parseInt(projectId))}
-                        disabled={deleteProjectMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </CardHeader>
                     <CardContent>
                       <TaskList
