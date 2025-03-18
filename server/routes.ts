@@ -371,6 +371,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // Delete project
+  app.delete("/api/projects/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteProject(parseInt(req.params.id));
+      res.sendStatus(204);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   // New Backup and Archive Routes
   app.get("/api/backup", ensureAdmin, async (req, res) => {
     try {

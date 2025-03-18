@@ -37,6 +37,7 @@ export interface IStorage {
   getUsers(): Promise<Map<number, User>>;
   getAllTasks(): Promise<Task[]>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
+  deleteProject(id: number): Promise<void>;
 }
 
 // Define backup data structure
@@ -216,6 +217,13 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async deleteProject(id: number): Promise<void> {
+    // First delete all tasks associated with this project
+    await db.delete(tasks).where(eq(tasks.projectId, id));
+    // Then delete the project
+    await db.delete(projects).where(eq(projects.id, id));
   }
 }
 
