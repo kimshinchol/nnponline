@@ -95,7 +95,7 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
               <FormLabel>Project (Optional)</FormLabel>
               <Select
                 onValueChange={(value) => field.onChange(value ? Number(value) : null)}
-                value={field.value?.toString() || ""}
+                value={field.value?.toString() || undefined}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -103,7 +103,6 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">No Project</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id.toString()}>
                       {project.name}

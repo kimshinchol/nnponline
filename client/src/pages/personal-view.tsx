@@ -28,14 +28,31 @@ export default function PersonalView() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (task: InsertTask) => {
-      const res = await apiRequest("POST", "/api/tasks", task);
-      return res.json();
+      try {
+        console.log("Submitting task:", task);
+        const res = await apiRequest("POST", "/api/tasks", task);
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.message || "Failed to create task");
+        }
+        return res.json();
+      } catch (error) {
+        console.error("Task creation error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       toast({
         title: "Success",
         description: "Task created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create task",
+        variant: "destructive",
       });
     },
   });

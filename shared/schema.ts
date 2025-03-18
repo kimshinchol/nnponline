@@ -40,7 +40,11 @@ export const insertUserSchema = createInsertSchema(users).extend({
 export const insertProjectSchema = createInsertSchema(projects);
 
 export const insertTaskSchema = createInsertSchema(tasks).extend({
-  status: z.enum(["pending", "in-progress", "completed"]),
+  status: z.enum(["pending", "in-progress", "completed"]).default("pending"),
+  description: z.string().nullable().optional(),
+  projectId: z.number().nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  userId: z.number().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
