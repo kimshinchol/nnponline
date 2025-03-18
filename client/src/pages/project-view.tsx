@@ -1,6 +1,6 @@
 import { Navigation } from "@/components/navigation";
 import { TaskList } from "@/components/task-list";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Task, InsertProject } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +44,17 @@ export default function ProjectView() {
     queryKey: ["/api/tasks/project"],
   });
 
+  // Group tasks by project
+  const tasksByProject = tasks?.reduce((acc, task) => {
+    const projectId = task.projectId;
+    if (!projectId) return acc;
+    if (!acc[projectId]) {
+      acc[projectId] = [];
+    }
+    acc[projectId].push(task);
+    return acc;
+  }, {} as Record<number, Task[]>);
+
   // Mutations
   const createProjectMutation = useMutation({
     mutationFn: async (data: InsertProject) => {
@@ -59,16 +70,6 @@ export default function ProjectView() {
       setProjectName("");
     },
   });
-
-  // Group tasks by project
-  const tasksByProject = tasks?.reduce((acc, task) => {
-    const projectId = task.projectId;
-    if (!acc[projectId]) {
-      acc[projectId] = [];
-    }
-    acc[projectId].push(task);
-    return acc;
-  }, {} as Record<number, Task[]>);
 
   const handleCreateProject = () => {
     if (!projectName.trim()) {
