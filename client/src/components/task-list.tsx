@@ -58,6 +58,17 @@ export function TaskList({
     return project ? project.name : "Unknown Project";
   };
 
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleEditSubmit = (updatedTask: Partial<Task>) => {
+    if (editingTask && onEdit) {
+      onEdit(editingTask.id, updatedTask);
+      setEditingTask(null);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
@@ -100,27 +111,29 @@ export function TaskList({
                       <option value="completed">Completed</option>
                     </select>
                   )}
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(task)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit Task</DialogTitle>
-                      </DialogHeader>
-                      <TaskForm
-                        onSubmit={handleEditSubmit}
-                        projects={projects}
-                        initialData={task}
-                      />
-                    </DialogContent>
-                  </Dialog>
+                  {onEdit && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(task)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit Task</DialogTitle>
+                        </DialogHeader>
+                        <TaskForm
+                          onSubmit={handleEditSubmit}
+                          projects={projects}
+                          initialData={task}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
                   {onDelete && (
                     <Button
                       variant="destructive"
