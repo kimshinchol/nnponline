@@ -12,7 +12,7 @@ function ensureAuthenticated(req: Request, res: Response, next: Function) {
 }
 
 function ensureAdmin(req: Request, res: Response, next: Function) {
-  if (req.isAuthenticated() && req.user.isAdmin) {
+  if (req.isAuthenticated() && req.user?.isAdmin) {
     return next();
   }
   res.status(403).json({ message: "Forbidden" });
