@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 
 export default function WebAdminAuthPage() {
@@ -97,70 +98,75 @@ export default function WebAdminAuthPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="PASSWORD"
-                        {...field}
-                      />
+                      <Input type="password" placeholder="PASSWORD" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {!userExists?.exists && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="Enter email"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="team"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter team"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
               <Button
                 type="submit"
                 className="w-full bg-gray-600 hover:bg-gray-700"
-                disabled={loginMutation.isPending || registerAdminMutation.isPending}
+                disabled={loginMutation.isPending}
               >
-                {!userExists?.exists
-                  ? registerAdminMutation.isPending
-                    ? "Creating..."
-                    : "Create Initial Admin Account"
-                  : loginMutation.isPending
-                  ? "Logging in..."
-                  : "Login as Admin"}
+                {loginMutation.isPending ? "Logging in..." : "Login as Admin"}
               </Button>
             </form>
           </Form>
+
+          <div className="mt-6 text-center">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="link" className="text-gray-600">
+                  {!userExists?.exists && "CREATE INITIAL ADMIN ACCOUNT"}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Initial Admin Account</DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                    className="space-y-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="username"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="ID" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input type="password" placeholder="PASSWORD" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={registerAdminMutation.isPending}
+                    >
+                      {registerAdminMutation.isPending ? "Creating..." : "Create Initial Admin Account"}
+                    </Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardContent>
       </Card>
     </div>
