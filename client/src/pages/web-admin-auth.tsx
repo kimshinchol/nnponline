@@ -15,10 +15,12 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function WebAdminAuthPage() {
   const { loginMutation, registerAdminMutation } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   // Check if any users exist
   const { data: userExists } = useQuery<{ exists: boolean }>({
@@ -42,7 +44,7 @@ export default function WebAdminAuthPage() {
         onSuccess: () => setLocation("/"),
       });
     } else {
-      // Regular admin login
+      // Admin login
       loginMutation.mutate(
         {
           username: data.username,
@@ -50,6 +52,13 @@ export default function WebAdminAuthPage() {
         },
         {
           onSuccess: () => setLocation("/"),
+          onError: (error) => {
+            toast({
+              title: "Login failed",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
         }
       );
     }

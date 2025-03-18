@@ -104,6 +104,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin login route needs to check isAdmin flag
+  app.post("/api/web_admin/login", async (req, res, next) => {
+    try {
+      const user = await storage.getUserByUsername(req.body.username);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+
+      // Check if user is an admin
+      if (!user.isAdmin) {
+        return res.status(403).json({ message: "Access denied. Admin privileges required." });
+      }
+
+      next();
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   // Admin login must check isAdmin flag
   app.post("/api/login", async (req, res, next) => {
     try {
