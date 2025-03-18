@@ -57,6 +57,20 @@ export default function PersonalView() {
     },
   });
 
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Task> }) => {
+      const res = await apiRequest("PATCH", `/api/tasks/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      toast({
+        title: "Success",
+        description: "Task updated successfully",
+      });
+    },
+  });
+
   const updateTaskStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       const res = await apiRequest("PATCH", `/api/tasks/${id}/status`, { status });
@@ -82,6 +96,10 @@ export default function PersonalView() {
 
   const handleCreateTask = (data: InsertTask) => {
     createTaskMutation.mutate(data);
+  };
+
+  const handleEditTask = (taskId: number, updatedTask: Partial<Task>) => {
+    updateTaskMutation.mutate({ id: taskId, data: updatedTask });
   };
 
   const handleStatusChange = (taskId: number, status: string) => {
@@ -123,6 +141,8 @@ export default function PersonalView() {
             tasks={tasks || []}
             onStatusChange={handleStatusChange}
             onDelete={handleDeleteTask}
+            onEdit={handleEditTask}
+            projects={projects}
             isLoading={tasksLoading}
           />
         </div>

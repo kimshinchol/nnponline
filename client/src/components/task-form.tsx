@@ -19,32 +19,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 interface TaskFormProps {
   onSubmit: (data: InsertTask) => void;
   projects: { id: number; name: string }[];
   isLoading?: boolean;
+  initialData?: Partial<InsertTask>;
 }
 
-export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
+export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFormProps) {
   const form = useForm<InsertTask>({
     resolver: zodResolver(insertTaskSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      status: "pending",
-      projectId: null,
-      dueDate: null,
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      status: initialData?.status || "pending",
+      projectId: initialData?.projectId || null,
     },
   });
 
   const handleSubmit = (data: InsertTask) => {
-    // Ensure projectId is either a number or null
     const formattedData = {
       ...data,
       projectId: data.projectId ? Number(data.projectId) : null,
@@ -115,50 +109,8 @@ export function TaskForm({ onSubmit, projects, isLoading }: TaskFormProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="dueDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Due Date (Optional)</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(new Date(field.value), "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date?.toISOString())}
-                    disabled={(date) =>
-                      date < new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Creating..." : "Create Task"}
+          {isLoading ? "Saving..." : initialData ? "Update Task" : "Create Task"}
         </Button>
       </form>
     </Form>

@@ -8,17 +8,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { TaskForm } from "./task-form";
+import { Pencil } from "lucide-react";
 
 interface TaskListProps {
   tasks: Task[];
   onStatusChange?: (taskId: number, status: string) => void;
   onDelete?: (taskId: number) => void;
+  onEdit?: (taskId: number, updatedTask: Partial<Task>) => void;
+  projects?: { id: number; name: string }[];
   isLoading?: boolean;
 }
 
-export function TaskList({ tasks, onStatusChange, onDelete, isLoading }: TaskListProps) {
+export function TaskList({ 
+  tasks, 
+  onStatusChange, 
+  onDelete, 
+  onEdit,
+  projects = [],
+  isLoading 
+}: TaskListProps) {
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -32,59 +46,89 @@ export function TaskList({ tasks, onStatusChange, onDelete, isLoading }: TaskLis
     }
   };
 
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleEditSubmit = (updatedTask: Partial<Task>) => {
+    if (editingTask && onEdit) {
+      onEdit(editingTask.id, updatedTask);
+      setEditingTask(null);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Title</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead>Due Date</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tasks.map((task) => (
-          <TableRow key={task.id}>
-            <TableCell className="font-medium">{task.title}</TableCell>
-            <TableCell>{task.description}</TableCell>
-            <TableCell>
-              {task.dueDate ? format(new Date(task.dueDate), "PP") : "No due date"}
-            </TableCell>
-            <TableCell>
-              <Badge className={getStatusColor(task.status)}>
-                {task.status}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              {onStatusChange && (
-                <select
-                  value={task.status}
-                  onChange={(e) => onStatusChange(task.id, e.target.value)}
-                  className="mr-2 p-1 rounded border"
-                >
-                  <option value="pending">Pending</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                </select>
-              )}
-              {onDelete && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => onDelete(task.id)}
-                >
-                  Delete
-                </Button>
-              )}
-            </TableCell>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Title</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {tasks.map((task) => (
+            <TableRow key={task.id}>
+              <TableCell className="font-medium">{task.title}</TableCell>
+              <TableCell>{task.description}</TableCell>
+              <TableCell>
+                <Badge className={getStatusColor(task.status)}>
+                  {task.status}
+                </Badge>
+              </TableCell>
+              <TableCell className="space-x-2">
+                {onStatusChange && (
+                  <select
+                    value={task.status}
+                    onChange={(e) => onStatusChange(task.id, e.target.value)}
+                    className="mr-2 p-1 rounded border"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                )}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(task)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Task</DialogTitle>
+                    </DialogHeader>
+                    <TaskForm
+                      onSubmit={handleEditSubmit}
+                      projects={projects}
+                      initialData={task}
+                    />
+                  </DialogContent>
+                </Dialog>
+                {onDelete && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onDelete(task.id)}
+                  >
+                    Delete
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   );
 }

@@ -32,6 +32,7 @@ export interface IStorage {
   getProjectTasks(projectId: number): Promise<Task[]>;
   updateTaskStatus(id: number, status: string): Promise<Task>;
   deleteTask(id: number): Promise<void>;
+  updateTask(id: number, data: Partial<Task>): Promise<Task>;
 
   createProject(project: InsertProject): Promise<Project>;
   getProjects(): Promise<Project[]>;
@@ -145,6 +146,20 @@ export class MemStorage implements IStorage {
     this.tasks.delete(id);
   }
 
+  async updateTask(id: number, data: Partial<Task>): Promise<Task> {
+    const task = this.tasks.get(id);
+    if (!task) throw new Error("Task not found");
+
+    const updatedTask = {
+      ...task,
+      ...data,
+      id, // Ensure ID remains unchanged
+    };
+
+    this.tasks.set(id, updatedTask);
+    return updatedTask;
+  }
+
   async createProject(project: InsertProject): Promise<Project> {
     const id = this.currentId.projects++;
     const newProject: Project = {
@@ -165,7 +180,7 @@ export class MemStorage implements IStorage {
       users: Array.from(this.users.values()),
       tasks: Array.from(this.tasks.values()),
       projects: Array.from(this.projects.values()),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -176,20 +191,20 @@ export class MemStorage implements IStorage {
     this.projects.clear();
 
     // Restore from backup
-    backup.users.forEach(user => this.users.set(user.id, user));
-    backup.tasks.forEach(task => this.tasks.set(task.id, task));
-    backup.projects.forEach(project => this.projects.set(project.id, project));
+    backup.users.forEach((user) => this.users.set(user.id, user));
+    backup.tasks.forEach((task) => this.tasks.set(task.id, task));
+    backup.projects.forEach((project) => this.projects.set(project.id, project));
 
     // Update currentId to be higher than any existing ID
     this.currentId = {
-      users: Math.max(...backup.users.map(u => u.id), 0) + 1,
-      tasks: Math.max(...backup.tasks.map(t => t.id), 0) + 1,
-      projects: Math.max(...backup.projects.map(p => p.id), 0) + 1
+      users: Math.max(...backup.users.map((u) => u.id), 0) + 1,
+      tasks: Math.max(...backup.tasks.map((t) => t.id), 0) + 1,
+      projects: Math.max(...backup.projects.map((p) => p.id), 0) + 1,
     };
   }
 
   async archiveTasks(filters: ArchiveFilters): Promise<Task[]> {
-    const tasksToArchive = Array.from(this.tasks.values()).filter(task => {
+    const tasksToArchive = Array.from(this.tasks.values()).filter((task) => {
       if (filters.before && new Date(task.createdAt) > filters.before) {
         return false;
       }
@@ -203,7 +218,7 @@ export class MemStorage implements IStorage {
     });
 
     // Move tasks to archive
-    tasksToArchive.forEach(task => {
+    tasksToArchive.forEach((task) => {
       this.tasks.delete(task.id);
       this.archivedTasks.set(task.id, task);
     });
@@ -215,7 +230,7 @@ export class MemStorage implements IStorage {
     let archivedTasks = Array.from(this.archivedTasks.values());
 
     if (filters) {
-      archivedTasks = archivedTasks.filter(task => {
+      archivedTasks = archivedTasks.filter((task) => {
         if (filters.before && new Date(task.createdAt) > filters.before) {
           return false;
         }

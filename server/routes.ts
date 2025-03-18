@@ -133,6 +133,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/tasks/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      console.log("Updating task:", req.params.id, req.body);
+      const taskData = await storage.updateTask(parseInt(req.params.id), req.body);
+      console.log("Task updated successfully:", taskData);
+      res.json(taskData);
+    } catch (err) {
+      console.error("Error updating task:", err);
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   // Project routes
   app.post("/api/projects", ensureAuthenticated, async (req, res) => {
     try {
