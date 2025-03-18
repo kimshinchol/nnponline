@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { UserManagement } from "@/components/user-management";
 
 type ArchiveFilters = {
   before?: string;
@@ -148,7 +149,10 @@ export default function AdminPage() {
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold">Admin Dashboard</h1>
 
-      {/* Backup Section */}
+      {/* User Management Section */}
+      <UserManagement />
+
+      {/* Existing Backup & Restore Card */}
       <Card>
         <CardHeader>
           <CardTitle>Backup & Restore</CardTitle>
@@ -244,7 +248,6 @@ export default function AdminPage() {
           </Form>
         </CardContent>
       </Card>
-
       {/* Archived Tasks Section */}
       <Card>
         <CardHeader>
