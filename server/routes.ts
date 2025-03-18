@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth } from "./auth";
+import { setupAuth, hashPassword } from "./auth";  // Add hashPassword import
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 
@@ -46,14 +46,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 2. Request comes from an existing admin
       const anyUser = await storage.getUserByUsername("admin");
       if (anyUser && (!req.isAuthenticated() || !req.user?.isAdmin)) {
-        return res.status(403).json({ 
-          message: "Admin registration is only allowed for the first user or by existing admins" 
+        return res.status(403).json({
+          message: "Admin registration is only allowed for the first user or by existing admins"
         });
       }
 
       const userData = insertUserSchema.parse(req.body);
+      // Hash the password before storing
+      const hashedPassword = await hashPassword(req.body.password);
       const user = await storage.createUser({
         ...userData,
+        password: hashedPassword,
         isAdmin: true,
         isApproved: true
       });

@@ -76,7 +76,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId.users++;
-    const user: User = { ...insertUser, id };
+    const user: User = {
+      ...insertUser,
+      id,
+      isAdmin: insertUser.isAdmin ?? false,
+      isApproved: insertUser.isApproved ?? false,
+    };
     this.users.set(id, user);
     return user;
   }
@@ -91,7 +96,14 @@ export class MemStorage implements IStorage {
 
   async createTask(task: InsertTask): Promise<Task> {
     const id = this.currentId.tasks++;
-    const newTask: Task = { ...task, id };
+    const newTask: Task = {
+      ...task,
+      id,
+      description: task.description ?? null,
+      projectId: task.projectId ?? null,
+      dueDate: task.dueDate ?? null,
+      createdAt: task.createdAt ?? new Date(),
+    };
     this.tasks.set(id, newTask);
     return newTask;
   }
@@ -135,7 +147,11 @@ export class MemStorage implements IStorage {
 
   async createProject(project: InsertProject): Promise<Project> {
     const id = this.currentId.projects++;
-    const newProject: Project = { ...project, id };
+    const newProject: Project = {
+      ...project,
+      id,
+      createdAt: project.createdAt ?? new Date(),
+    };
     this.projects.set(id, newProject);
     return newProject;
   }

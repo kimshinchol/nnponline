@@ -15,7 +15,8 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string) {
+// Export the hashPassword function so it can be used in routes.ts
+export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
@@ -44,18 +45,24 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log("Login attempt for username:", username);
         const user = await storage.getUserByUsername(username);
         if (!user) {
+          console.log("User not found:", username);
           return done(null, false, { message: "Invalid username or password" });
         }
 
+        console.log("User found, validating password");
         const isValid = await comparePasswords(password, user.password);
         if (!isValid) {
+          console.log("Invalid password for user:", username);
           return done(null, false, { message: "Invalid username or password" });
         }
 
+        console.log("Login successful for user:", username);
         return done(null, user);
       } catch (err) {
+        console.error("Login error:", err);
         return done(err);
       }
     }),
