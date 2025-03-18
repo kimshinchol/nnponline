@@ -6,6 +6,7 @@ import {
   UsersIcon,
   FolderIcon,
   LogOutIcon,
+  ShieldIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -59,12 +60,27 @@ export function Navigation() {
             Project View
           </Button>
         </Link>
+        {/* Show Admin link only for admin users */}
+        {user?.isAdmin && (
+          <Link href="/admin">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start"
+            >
+              <ShieldIcon className="mr-2 h-4 w-4" />
+              Admin Dashboard
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="mt-auto">
         <div className="mb-4 p-4 border rounded-lg">
           <p className="text-sm font-medium">{user?.username}</p>
           <p className="text-xs text-muted-foreground">{user?.team}</p>
+          {user?.isAdmin && (
+            <p className="text-xs text-primary mt-1">Administrator</p>
+          )}
         </div>
         <Button 
           variant="outline" 
