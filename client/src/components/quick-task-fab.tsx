@@ -17,7 +17,7 @@ export function QuickTaskFAB() {
   });
 
   const createTaskMutation = useMutation({
-    mutationFn: async (task: InsertTask) => {
+    mutationFn: async (task: InsertTask & { assignedUserId?: number }) => {
       const res = await apiRequest("POST", "/api/tasks", task);
       if (!res.ok) {
         const error = await res.json();

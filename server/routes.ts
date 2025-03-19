@@ -232,10 +232,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/tasks", ensureAuthenticated, async (req, res) => {
     try {
+      const userId = req.user!.isAdmin && req.body.userId ? req.body.userId : req.user!.id;
+
       const taskData = insertTaskSchema.parse({
         ...req.body,
-        userId: req.user!.id,
-        status: req.body.status || "pending",
+        userId,
+        status: req.body.status || "작업전",
         createdAt: new Date()
       });
 

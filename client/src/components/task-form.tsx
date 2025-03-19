@@ -24,13 +24,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 
 interface TaskFormProps {
-  onSubmit: (data: InsertTask) => void;
+  onSubmit: (data: InsertTask & { assignedUserId?: number }) => void;
   projects: { id: number; name: string }[];
   isLoading?: boolean;
   initialData?: Partial<InsertTask>;
@@ -38,14 +38,22 @@ interface TaskFormProps {
 
 export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFormProps) {
   const [showPreviousTasks, setShowPreviousTasks] = useState(false);
+  const { user } = useAuth();
 
-  const form = useForm<InsertTask>({
+  // Fetch approved users if current user is admin
+  const { data: approvedUsers } = useQuery<{ id: number; username: string }[]>({
+    queryKey: ["/api/users/approved"],
+    enabled: user?.isAdmin === true,
+  });
+
+  const form = useForm<InsertTask & { assignedUserId?: number }>({
     resolver: zodResolver(insertTaskSchema),
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
       status: initialData?.status || "작업전",
       projectId: initialData?.projectId || null,
+      assignedUserId: undefined,
     },
   });
 
@@ -56,17 +64,17 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
   });
 
   const handleCopyTask = (task: Task) => {
-    console.log("Copying task:", task);
     form.setValue("title", task.title);
     form.setValue("description", task.description || "");
     form.setValue("projectId", task.projectId);
     setShowPreviousTasks(false);
   };
 
-  const handleSubmit = (data: InsertTask) => {
+  const handleSubmit = (data: InsertTask & { assignedUserId?: number }) => {
     const formattedData = {
       ...data,
       projectId: data.projectId ? Number(data.projectId) : null,
+      userId: data.assignedUserId || user?.id,
     };
     onSubmit(formattedData);
   };
@@ -106,6 +114,36 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          {user?.isAdmin && (
+            <FormField
+              control={form.control}
+              name="assignedUserId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign To User</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value ? Number(value) : undefined)}
+                    value={field.value?.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select user to assign task" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {approvedUsers?.map((user) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.username}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={form.control}
             name="title"
