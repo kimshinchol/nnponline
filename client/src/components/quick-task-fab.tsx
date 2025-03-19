@@ -46,8 +46,10 @@ export function QuickTaskFAB() {
     },
   });
 
-  // Only show FAB for non-admin authenticated users
-  if (!user || user.isAdmin) return null;
+  // Show FAB for authenticated non-admin users
+  const shouldShowFAB = user && !user.isAdmin;
+
+  if (!shouldShowFAB) return null;
 
   return (
     <>
