@@ -47,7 +47,7 @@ export default function SchedulerView() {
   return (
     <div className="flex min-h-screen">
       <Navigation />
-      <main className="flex-1 p-8 ml-64">
+      <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
           <div className="h-8 mb-8"></div> {/* Spacer to maintain layout */}
 
@@ -70,34 +70,15 @@ export default function SchedulerView() {
             </div>
 
             {/* Tasks By Project Section */}
-            {projectsWithTasks?.map((project) => (
-              <Card key={project.id}>
-                <CardHeader>
-                  <CardTitle>{project.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TaskList
-                    tasks={tasksByProject?.[project.id] || []}
-                    projects={projects}
-                    isLoading={isLoading}
-                    showActions={false}
-                    showProject={false}
-                    showAuthor={true}
-                  />
-                </CardContent>
-              </Card>
-            ))}
-
-            {/* Unassigned Tasks */}
-            {tasksByProject?.["unassigned"] &&
-              tasksByProject["unassigned"].length > 0 && (
-                <Card>
+            <div className="space-y-4 overflow-x-hidden">
+              {projectsWithTasks?.map((project) => (
+                <Card key={project.id}>
                   <CardHeader>
-                    <CardTitle>Unassigned Tasks</CardTitle>
+                    <CardTitle>{project.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <TaskList
-                      tasks={tasksByProject["unassigned"]}
+                      tasks={tasksByProject?.[project.id] || []}
                       projects={projects}
                       isLoading={isLoading}
                       showActions={false}
@@ -106,14 +87,35 @@ export default function SchedulerView() {
                     />
                   </CardContent>
                 </Card>
-              )}
+              ))}
 
-            {!isLoading &&
-              (!tasksByProject || Object.keys(tasksByProject).length === 0) && (
-                <p className="text-center text-muted-foreground">
-                  No tasks found for {format(selectedDate, "MMMM d, yyyy")} (KST)
-                </p>
-              )}
+              {/* Unassigned Tasks */}
+              {tasksByProject?.["unassigned"] &&
+                tasksByProject["unassigned"].length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Unassigned Tasks</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <TaskList
+                        tasks={tasksByProject["unassigned"]}
+                        projects={projects}
+                        isLoading={isLoading}
+                        showActions={false}
+                        showProject={false}
+                        showAuthor={true}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+              {!isLoading &&
+                (!tasksByProject || Object.keys(tasksByProject).length === 0) && (
+                  <p className="text-center text-muted-foreground">
+                    No tasks found for {format(selectedDate, "MMMM d, yyyy")} (KST)
+                  </p>
+                )}
+            </div>
           </div>
         </div>
       </main>

@@ -41,11 +41,7 @@ export function Navigation() {
         className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-background border"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       >
-        {isMobileMenuOpen ? (
-          <X className="h-6 w-6" />
-        ) : (
-          <Menu className="h-6 w-6" />
-        )}
+        {!isMobileMenuOpen && <Menu className="h-6 w-6" />}
       </button>
 
       {/* Navigation Sidebar */}
@@ -57,6 +53,16 @@ export function Navigation() {
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
+        {/* Close button positioned at top right of menu */}
+        {isMobileMenuOpen && (
+          <button
+            className="lg:hidden absolute top-4 right-4 p-2 rounded-md"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+        )}
+
         <div className="flex items-center mb-8 pl-2">
           <img src="/logo.png" alt="Logo" className="h-8" />
         </div>
