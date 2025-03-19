@@ -16,15 +16,25 @@ const connectionString = process.env.DATABASE_URL;
 export const pool = new Pool({ 
   connectionString,
   ssl: true,
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 10000,
-  max: 20
+  connectionTimeoutMillis: 30000, // Increased timeout
+  idleTimeoutMillis: 30000, // Increased idle timeout
+  max: 20, // Maximum pool size
+  keepAlive: true, // Enable keepalive
+  keepAliveInitialDelayMillis: 10000 // Keepalive delay
 });
 
-// Add error handling for the pool
+// Add comprehensive error handling for the pool
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+  // Attempt to reconnect rather than exit
+  setTimeout(() => {
+    console.log('Attempting to reconnect...');
+    pool.connect().catch(console.error);
+  }, 5000);
+});
+
+pool.on('connect', () => {
+  console.log('Database connection established');
 });
 
 export const db = drizzle({ client: pool, schema });
