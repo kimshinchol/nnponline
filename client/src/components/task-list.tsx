@@ -32,13 +32,14 @@ interface TaskListProps {
   onStatusChange?: (taskId: number, status: string) => void;
   onDelete?: (taskId: number) => void;
   onEdit?: (taskId: number, updatedTask: Partial<Task>) => void;
-  onCreate?: (task: any) => void; // Assuming InsertTask type is defined elsewhere.  Using 'any' for compilation.
+  onCreate?: (task: any) => void;
   projects?: { id: number; name: string }[];
   showAuthor?: boolean;
   showActions?: boolean;
   showProject?: boolean;
   isLoading?: boolean;
   createLoading?: boolean;
+  showCreateButton?: boolean; // New prop to control create button visibility
 }
 
 export function TaskList({
@@ -52,7 +53,8 @@ export function TaskList({
   showActions = true,
   showProject = true,
   isLoading,
-  createLoading
+  createLoading,
+  showCreateButton = false // Default to false
 }: TaskListProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
@@ -156,13 +158,15 @@ export function TaskList({
       <div className="w-full overflow-hidden">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Tasks</h2>
-          <Button
-            onClick={() => setShowNewTaskDialog(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Task
-          </Button>
+          {showCreateButton && onCreate && (
+            <Button
+              onClick={() => setShowNewTaskDialog(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              New Task
+            </Button>
+          )}
         </div>
         <Table>
           <TableHeader>

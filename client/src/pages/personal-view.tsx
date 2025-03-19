@@ -114,6 +114,7 @@ export default function PersonalView() {
               projects={projects || []}
               isLoading={tasksLoading}
               createLoading={createTaskMutation.isPending}
+              showCreateButton={true} // Show create button in personal view
             />
           </div>
         </div>
