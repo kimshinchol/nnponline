@@ -35,13 +35,15 @@ app.use((req, res, next) => {
 
 (async () => {
   let retries = 5;
-  while (retries > 0) {
+  let server;
+
+  const startServer = async () => {
     try {
-      // Test database connection before starting server
+      // Test database connection
       await pool.connect();
       console.log('Database connection successful');
 
-      const server = await registerRoutes(app);
+      server = await registerRoutes(app);
 
       // Enhanced error handling middleware
       app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -62,30 +64,43 @@ app.use((req, res, next) => {
         log(`Server running on port ${port}`);
       });
 
+      return true;
+    } catch (err) {
+      console.error("Server startup error:", err);
+      return false;
+    }
+  };
+
+  while (retries > 0) {
+    const success = await startServer();
+    if (success) {
       // Graceful shutdown handling
       process.on('SIGTERM', () => {
         console.log('SIGTERM received. Starting graceful shutdown...');
-        server.close(() => {
-          console.log('Server closed. Shutting down pool...');
-          pool.end().then(() => {
-            console.log('Pool has ended. Process will now exit.');
-            process.exit(0);
+        if (server) {
+          server.close(() => {
+            console.log('Server closed. Shutting down pool...');
+            pool.end().then(() => {
+              console.log('Pool has ended. Process will now exit.');
+              process.exit(0);
+            });
           });
-        });
+        } else {
+          process.exit(1);
+        }
       });
 
-      // Successfully started server, break the retry loop
+      // Successfully started server
       break;
-
-    } catch (err) {
-      console.error("Server startup error:", err);
-      retries--;
-      if (retries === 0) {
-        console.error("Failed to start server after multiple attempts:", err);
-        process.exit(1);
-      }
-      console.log(`Retrying server startup in 5 seconds... (${retries} attempts remaining)`);
-      await new Promise(resolve => setTimeout(resolve, 5000));
     }
+
+    retries--;
+    if (retries === 0) {
+      console.error("Failed to start server after multiple attempts");
+      process.exit(1);
+    }
+
+    console.log(`Retrying server startup in 5 seconds... (${retries} attempts remaining)`);
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 })();
