@@ -49,16 +49,13 @@ export default function SchedulerView() {
       <Navigation />
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
-          <div className="h-8 mb-8"></div> {/* Spacer to maintain layout */}
+          <div className="h-8 mb-8"></div>
 
           <div className="space-y-8">
             {/* Calendar Section - Centered */}
             <div className="flex justify-center">
               <Card className="w-full max-w-sm">
-                <CardHeader>
-                  <CardTitle className="text-center">Select Date (KST)</CardTitle>
-                </CardHeader>
-                <CardContent className="flex justify-center">
+                <CardContent className="flex justify-center pt-6">
                   <Calendar
                     mode="single"
                     selected={selectedDate}

@@ -216,7 +216,6 @@ export default function ProjectView() {
           ) : !tasksByProject || Object.keys(tasksByProject).length === 0 ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">No Tasks Found</CardTitle>
                 <CardDescription className="text-xs">
                   Create tasks in your personal view and assign them to projects
                 </CardDescription>
@@ -225,17 +224,14 @@ export default function ProjectView() {
           ) : (
             <div className="space-y-4 w-full overflow-x-hidden">
               {Object.entries(tasksByProject).map(([projectId, projectTasks]) => {
-                const project = projects?.find(
-                  (p) => p.id === parseInt(projectId)
-                );
+                const project = projects?.find((p) => p.id === parseInt(projectId));
                 return (
                   <Card key={projectId} className="w-full">
                     <CardHeader>
                       <div>
                         <CardTitle className="text-sm">{project?.name || "Untitled Project"}</CardTitle>
                         <CardDescription className="text-xs">
-                          {projectTasks.length} task
-                          {projectTasks.length !== 1 ? "s" : ""}
+                          {projectTasks.length} task{projectTasks.length !== 1 ? "s" : ""}
                         </CardDescription>
                       </div>
                     </CardHeader>

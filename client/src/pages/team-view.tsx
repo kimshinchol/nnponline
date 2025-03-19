@@ -27,7 +27,7 @@ export default function TeamView() {
       <Navigation />
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
-          <div className="h-8 mb-8"></div> {/* Spacer to maintain layout */}
+          <div className="h-8 mb-8"></div>
 
           <Tabs defaultValue="PM" className="w-full">
             <TabsList className="grid w-full grid-cols-5">
@@ -40,9 +40,6 @@ export default function TeamView() {
 
             {TEAMS.map((team, index) => (
               <TabsContent key={team} value={team}>
-                <div className="mb-4">
-                  <h2 className="text-xl font-semibold">{team} Team Tasks</h2>
-                </div>
                 <div className="overflow-x-hidden">
                   <TaskList
                     tasks={teamQueries[index].data || []}
