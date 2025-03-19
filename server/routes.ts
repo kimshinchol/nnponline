@@ -14,6 +14,8 @@ async function createDefaultAdminIfNeeded() {
       await storage.createUser({
         username: "admin",
         password: hashedPassword,
+        email: "admin@example.com", // Add required email field
+        team: "PM", // Add required team field
         isAdmin: true,
         isApproved: true
       });

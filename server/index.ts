@@ -40,11 +40,16 @@ app.use((req, res, next) => {
 
   const startServer = async (): Promise<boolean> => {
     try {
-      // Test database connection
-      await pool.connect();
-      console.log('Database connection successful');
+      log("Starting server initialization...");
 
+      // Test database connection
+      log("Testing database connection...");
+      await pool.connect();
+      log('Database connection successful');
+
+      log("Registering routes...");
       server = await registerRoutes(app);
+      log("Routes registered successfully");
 
       // Enhanced error handling middleware
       app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -54,18 +59,23 @@ app.use((req, res, next) => {
         res.status(status).json({ message });
       });
 
+      log("Setting up server environment...");
       if (app.get("env") === "development") {
         await setupVite(app, server);
+        log("Vite development server setup complete");
       } else {
         serveStatic(app);
+        log("Static file serving setup complete");
       }
 
-      const port = parseInt(process.env.PORT || "5000", 10);
-      server.listen(port, "0.0.0.0", () => {
-        log(`Server running on port ${port}`);
+      // ALWAYS serve the app on port 5000 for Replit deployment
+      return new Promise((resolve) => {
+        log("Attempting to bind to port 5000...");
+        server?.listen(5000, "0.0.0.0", () => {
+          log(`Server running on port 5000`);
+          resolve(true);
+        });
       });
-
-      return true;
     } catch (err) {
       console.error("Server startup error:", err);
       return false;
