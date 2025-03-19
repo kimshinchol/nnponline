@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
+import { Server } from "http";
 
 const app = express();
 app.use(express.json());
@@ -35,9 +36,9 @@ app.use((req, res, next) => {
 
 (async () => {
   let retries = 5;
-  let server;
+  let server: Server | undefined;
 
-  const startServer = async () => {
+  const startServer = async (): Promise<boolean> => {
     try {
       // Test database connection
       await pool.connect();
