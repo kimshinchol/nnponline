@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -27,14 +27,14 @@ export const tasks = pgTable("tasks", {
   userId: integer("user_id").notNull(),
   projectId: integer("project_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  dueDate: timestamp("due_date"),  // Add the existing due_date column
+  dueDate: timestamp("due_date"),
 });
 
-// Keep the session table
+// Update session table with correct types
 export const sessions = pgTable("session", {
-  sid: text("sid").primaryKey(),
-  sess: text("sess").notNull(),
-  expire: timestamp("expire").notNull(),
+  sid: varchar("sid").primaryKey(),
+  sess: json("sess").notNull(),
+  expire: timestamp("expire", { precision: 6 }).notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).extend({
