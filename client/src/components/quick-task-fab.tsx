@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
@@ -7,10 +7,12 @@ import { InsertTask } from "@shared/schema";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export function QuickTaskFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
@@ -44,12 +46,13 @@ export function QuickTaskFAB() {
     },
   });
 
+  if (!user) return null;
+
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: 100 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 100 }}
         transition={{ duration: 0.3 }}
         className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50"
       >
