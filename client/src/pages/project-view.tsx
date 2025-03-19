@@ -14,20 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Command, CommandInput } from "@/components/ui/command";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function ProjectView() {
   const { toast } = useToast();
@@ -87,7 +75,7 @@ export default function ProjectView() {
       <main className="flex-1 p-8 ml-64">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Project View</h1>
+            <div className="w-20"></div> {/* Spacer to maintain layout */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button>

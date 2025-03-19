@@ -42,7 +42,6 @@ export default function PersonalView() {
       }
     },
     onSuccess: () => {
-      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
@@ -66,7 +65,6 @@ export default function PersonalView() {
       return res.json();
     },
     onSuccess: () => {
-      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
@@ -83,7 +81,6 @@ export default function PersonalView() {
       return res.json();
     },
     onSuccess: () => {
-      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
@@ -95,7 +92,6 @@ export default function PersonalView() {
       await apiRequest("DELETE", `/api/tasks/${id}`);
     },
     onSuccess: () => {
-      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
@@ -128,7 +124,7 @@ export default function PersonalView() {
       <main className="flex-1 p-8 ml-64">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Personal Tasks</h1>
+            <div className="w-20"></div> {/* Spacer to maintain layout */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button>

@@ -27,7 +27,7 @@ export default function TeamView() {
       <Navigation />
       <main className="flex-1 p-8 ml-64">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Team View</h1>
+          <div className="h-8 mb-8"></div> {/* Spacer to maintain layout */}
 
           <Tabs defaultValue="PM" className="w-full">
             <TabsList className="grid w-full grid-cols-5">
@@ -43,17 +43,15 @@ export default function TeamView() {
                 <div className="mb-4">
                   <h2 className="text-xl font-semibold">{team} Team Tasks</h2>
                 </div>
-                {
-                  (
-                    <TaskList
-                      tasks={teamQueries[index].data || []}
-                      isLoading={teamQueries[index].isLoading}
-                      projects={projects}
-                      showAuthor={true}
-                      showActions={false}
-                    />
-                  )
-                }
+                {(
+                  <TaskList
+                    tasks={teamQueries[index].data || []}
+                    isLoading={teamQueries[index].isLoading}
+                    projects={projects}
+                    showAuthor={true}
+                    showActions={false}
+                  />
+                )}
               </TabsContent>
             ))}
           </Tabs>

@@ -44,12 +44,12 @@ export default function SchedulerView() {
   }, {} as Record<string | number, Task[]>);
 
   // Get list of project IDs that have tasks for the selected date
-  const projectIdsWithTasks = Object.keys(tasksByProject || {}).map(id => 
+  const projectIdsWithTasks = Object.keys(tasksByProject || {}).map(id =>
     id === "unassigned" ? null : parseInt(id)
   );
 
   // Filter projects to only show those with tasks
-  const projectsWithTasks = projects?.filter(project => 
+  const projectsWithTasks = projects?.filter(project =>
     projectIdsWithTasks.includes(project.id)
   );
 
@@ -58,7 +58,7 @@ export default function SchedulerView() {
       <Navigation />
       <main className="flex-1 p-8 ml-64">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Task History</h1>
+          <div className="h-8 mb-8"></div> {/* Spacer to maintain layout */}
 
           <div className="space-y-8">
             {/* Calendar Section - Centered */}
