@@ -27,6 +27,14 @@ export const tasks = pgTable("tasks", {
   userId: integer("user_id").notNull(),
   projectId: integer("project_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  dueDate: timestamp("due_date"),  // Add the existing due_date column
+});
+
+// Keep the session table
+export const sessions = pgTable("session", {
+  sid: text("sid").primaryKey(),
+  sess: text("sess").notNull(),
+  expire: timestamp("expire").notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).extend({
@@ -44,6 +52,7 @@ export const insertTaskSchema = createInsertSchema(tasks).extend({
   description: z.string().nullable().optional(),
   projectId: z.number().nullable().optional(),
   userId: z.number().optional(),
+  dueDate: z.date().nullable().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
