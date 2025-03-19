@@ -121,7 +121,7 @@ export default function PersonalView() {
   return (
     <div className="flex min-h-screen">
       <Navigation />
-      <main className="flex-1 p-8 ml-16 transition-all duration-300 ease-in-out group-hover:ml-64">
+      <main className="flex-1 p-8 ml-64">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div className="w-20"></div> {/* Spacer to maintain layout */}
