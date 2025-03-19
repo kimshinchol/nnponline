@@ -7,12 +7,10 @@ import { InsertTask } from "@shared/schema";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
 
 export function QuickTaskFAB() {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
@@ -45,11 +43,6 @@ export function QuickTaskFAB() {
       });
     },
   });
-
-  // Show FAB for authenticated non-admin users
-  const shouldShowFAB = user && !user.isAdmin;
-
-  if (!shouldShowFAB) return null;
 
   return (
     <>
