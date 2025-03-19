@@ -50,7 +50,7 @@ export const insertProjectSchema = createInsertSchema(projects);
 export const insertTaskSchema = createInsertSchema(tasks).extend({
   status: z.enum(["작업전", "작업중", "완료"]).default("작업전"),
   description: z.string().nullable().optional(),
-  projectId: z.number({ required_error: "Project is required" }), 
+  projectId: z.number({ required_error: "Project is required" }),
   userId: z.number().optional(),
   dueDate: z.date().nullable().optional(),
 });

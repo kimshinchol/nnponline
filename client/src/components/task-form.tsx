@@ -32,7 +32,7 @@ interface TaskFormProps {
   onSubmit: (data: InsertTask) => void;
   projects: { id: number; name: string }[];
   isLoading?: boolean;
-  initialData?: Partial<InsertTask>;
+  initialData?: Task;
 }
 
 export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFormProps) {
@@ -44,11 +44,10 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
       title: initialData?.title || "",
       description: initialData?.description || "",
       status: initialData?.status || "작업전",
-      projectId: initialData?.projectId || null,
+      projectId: initialData?.projectId || (projects[0]?.id ?? 0), // Default to first project if available
     },
   });
 
-  // Fetch previous day's tasks
   const { data: previousTasks, isLoading: loadingPreviousTasks } = useQuery<Task[]>({
     queryKey: ["/api/tasks/previous"],
     enabled: showPreviousTasks,
@@ -62,11 +61,11 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
   };
 
   const handleSubmit = (data: InsertTask) => {
-    const formattedData = {
+    onSubmit({
       ...data,
-      projectId: data.projectId ? Number(data.projectId) : null,
-    };
-    onSubmit(formattedData);
+      projectId: Number(data.projectId),
+      description: data.description || null,
+    });
   };
 
   return (
@@ -141,10 +140,11 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
             name="projectId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Project (Optional)</FormLabel>
+                <FormLabel>Project (Required)</FormLabel>
                 <Select
-                  onValueChange={(value) => field.onChange(value ? Number(value) : null)}
-                  value={field.value?.toString() || undefined}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                  value={field.value?.toString()}
+                  defaultValue={projects[0]?.id.toString()}
                 >
                   <FormControl>
                     <SelectTrigger>
