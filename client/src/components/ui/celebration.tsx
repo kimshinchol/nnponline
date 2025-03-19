@@ -2,13 +2,21 @@ import { motion } from "framer-motion";
 
 interface CelebrationProps {
   onComplete?: () => void;
+  position?: { x: number; y: number };
 }
 
-export function Celebration({ onComplete }: CelebrationProps) {
+export function Celebration({ onComplete, position }: CelebrationProps) {
   const particles = Array.from({ length: 20 });
 
   return (
-    <div className="fixed inset-0 pointer-events-none flex items-center justify-center">
+    <div 
+      className="fixed pointer-events-none"
+      style={{
+        left: position?.x ?? '50%',
+        top: position?.y ?? '50%',
+        transform: position ? 'none' : 'translate(-50%, -50%)'
+      }}
+    >
       {particles.map((_, i) => (
         <motion.div
           key={i}
@@ -22,8 +30,8 @@ export function Celebration({ onComplete }: CelebrationProps) {
           animate={{
             opacity: 0,
             scale: 1,
-            x: Math.random() * 400 - 200,
-            y: Math.random() * 400 - 200,
+            x: Math.random() * 200 - 100,
+            y: Math.random() * 200 - 100,
           }}
           transition={{
             duration: 0.8,

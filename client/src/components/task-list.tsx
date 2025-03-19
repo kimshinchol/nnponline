@@ -39,6 +39,7 @@ export function TaskList({
   isLoading
 }: TaskListProps) {
   const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const getStatusColor = (status: string) => {
@@ -69,6 +70,23 @@ export function TaskList({
     return project ? project.name : "Unknown Project";
   };
 
+  const handleStatusClick = (taskId: number, currentStatus: string, event: React.MouseEvent) => {
+    if (onStatusChange) {
+      const newStatus = getNextStatus(currentStatus);
+      if (newStatus === "완료") {
+        const buttonRect = event.currentTarget.getBoundingClientRect();
+        setCelebrationPosition({
+          x: buttonRect.left + buttonRect.width / 2,
+          y: buttonRect.top + buttonRect.height / 2
+        });
+        setShowCelebration(true);
+        // Automatically hide celebration after animation completes
+        setTimeout(() => setShowCelebration(false), 2000);
+      }
+      onStatusChange(taskId, newStatus);
+    }
+  };
+
   const handleEdit = (task: Task) => {
     setEditingTask(task);
   };
@@ -80,26 +98,17 @@ export function TaskList({
     }
   };
 
-  const handleStatusClick = (taskId: number, currentStatus: string) => {
-    if (onStatusChange) {
-      const newStatus = getNextStatus(currentStatus);
-      if (newStatus === "완료") {
-        setShowCelebration(true);
-        // Automatically hide celebration after animation completes
-        setTimeout(() => setShowCelebration(false), 2000);
-      }
-      onStatusChange(taskId, newStatus);
-    }
-  };
-
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
 
   return (
     <>
-      {showCelebration && (
-        <Celebration onComplete={() => setShowCelebration(false)} />
+      {showCelebration && celebrationPosition && (
+        <Celebration 
+          position={celebrationPosition}
+          onComplete={() => setShowCelebration(false)} 
+        />
       )}
       <Table>
         <TableHeader>
@@ -120,7 +129,7 @@ export function TaskList({
               <TableCell>
                 <Badge 
                   className={`${getStatusColor(task.status)} cursor-pointer min-w-[60px] text-center inline-flex justify-center items-center`}
-                  onClick={() => handleStatusClick(task.id, task.status)}
+                  onClick={(e) => handleStatusClick(task.id, task.status, e)}
                 >
                   {task.status}
                 </Badge>
