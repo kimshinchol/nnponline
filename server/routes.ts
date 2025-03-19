@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
-import passport from 'passport'; // Import passport
+import passport from 'passport';
 
 function ensureAuthenticated(req: Request, res: Response, next: Function) {
   if (req.isAuthenticated()) {
@@ -16,29 +16,34 @@ function ensureAdmin(req: Request, res: Response, next: Function) {
   if (req.isAuthenticated() && req.user?.isAdmin) {
     return next();
   }
-  res.status(403).json({ message: "Forbidden" });
+  res.status(403).json({ message: "Forbidden. Admin access required." });
 }
 
-// Add helper function at the top of the file, after imports
-function isTaskFromToday(taskDate: Date): boolean {
-  const kstOffset = 9 * 60; // KST is UTC+9
-  const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
-  const nowKST = new Date(Date.now() + kstOffset * 60000);
-
-  return (
-    taskKST.getFullYear() === nowKST.getFullYear() &&
-    taskKST.getMonth() === nowKST.getMonth() &&
-    taskKST.getDate() === nowKST.getDate()
-  );
-}
-
+// Add login route before other routes
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
-  // Update the user exists check to be more comprehensive
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        console.error("Login error:", err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Invalid username or password" });
+      }
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Session error:", err);
+          return res.status(500).json({ message: "Failed to create session" });
+        }
+        return res.json(user);
+      });
+    })(req, res, next);
+  });
+
   app.get("/api/user/exists", async (req, res) => {
     try {
-      // Get count of users (more efficient than getting actual users)
       const anyUser = await storage.getUserByUsername("admin");
       res.json({ exists: !!anyUser });
     } catch (err) {
@@ -46,7 +51,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Regular user registration (non-admin)
   app.post("/api/register", async (req, res) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
@@ -59,8 +63,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
-        isAdmin: false, // Regular users can't be admin
-        isApproved: false // All new users start unapproved
+        isAdmin: false,
+        isApproved: false
       });
 
       res.status(201).json({
@@ -72,22 +76,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin-only registration route
   app.post("/api/web_admin/register", async (req, res, next) => {
     try {
-      // Check if any users exist
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      // Get count of admin users
       const users = await storage.getUsers();
       const adminCount = Array.from(users.values()).filter(u => u.isAdmin).length;
 
-      // Only allow admin registration if:
-      // 1. No users exist (first user)
-      // 2. Only one admin exists and request comes from an existing admin
       if (adminCount >= 2) {
         return res.status(403).json({
           message: "Maximum number of admin accounts (2) has been reached"
@@ -118,7 +116,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin login route needs to check isAdmin flag
   app.post("/api/web_admin/login", async (req, res, next) => {
     try {
       const user = await storage.getUserByUsername(req.body.username);
@@ -126,12 +123,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid username or password" });
       }
 
-      // Check if user is an admin
       if (!user.isAdmin) {
         return res.status(403).json({ message: "Access denied. Admin privileges required." });
       }
 
-      // Use passport authenticate manually for admin login
       passport.authenticate("local", (err: any, user: any, info: any) => {
         if (err) { return next(err); }
         if (!user) { return res.status(401).json({ message: info.message }); }
@@ -147,7 +142,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin login must check isAdmin flag
   app.post("/api/login", async (req, res, next) => {
     try {
       const user = await storage.getUserByUsername(req.body.username);
@@ -155,7 +149,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid username or password" });
       }
 
-      // Add approval check
       if (!user.isApproved) {
         return res.status(403).json({
           message: "Your account is pending approval. Please wait for an administrator to approve your account."
@@ -168,7 +161,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes
   app.post("/api/users/:id/approve", ensureAdmin, async (req, res) => {
     try {
       const user = await storage.approveUser(parseInt(req.params.id));
@@ -178,7 +170,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add route to get pending users
   app.get("/api/users/pending", ensureAdmin, async (req, res) => {
     try {
       const users = await storage.getUsers();
@@ -189,7 +180,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get approved users
   app.get("/api/users/approved", ensureAdmin, async (req, res) => {
     try {
       const users = await storage.getUsers();
@@ -200,7 +190,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete user
   app.delete("/api/users/:id", ensureAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
@@ -221,7 +210,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update user
   app.patch("/api/users/:id", ensureAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
@@ -242,10 +230,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Task routes
   app.post("/api/tasks", ensureAuthenticated, async (req, res) => {
     try {
-      console.log("Creating task with data:", req.body);
       const taskData = insertTaskSchema.parse({
         ...req.body,
         userId: req.user!.id,
@@ -254,20 +240,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const task = await storage.createTask(taskData);
-      console.log("Task created successfully:", task);
       res.status(201).json(task);
     } catch (err) {
-      console.error("Error creating task:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });
 
-  // Update getUserTasks endpoint
   app.get("/api/tasks/user", ensureAuthenticated, async (req, res) => {
     try {
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      // If date is provided (for scheduler), use that date for filtering
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
         const kstOffset = 9 * 60;
@@ -286,7 +268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(filteredTasks);
       }
 
-      // Otherwise, only return today's tasks (KST)
       const todaysTasks = tasks.filter(task => isTaskFromToday(new Date(task.createdAt)));
       res.json(todaysTasks);
     } catch (err) {
@@ -294,13 +275,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this endpoint after other task routes
+  function isTaskFromToday(taskDate: Date): boolean {
+    const kstOffset = 9 * 60; 
+    const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
+    const nowKST = new Date(Date.now() + kstOffset * 60000);
+
+    return (
+      taskKST.getFullYear() === nowKST.getFullYear() &&
+      taskKST.getMonth() === nowKST.getMonth() &&
+      taskKST.getDate() === nowKST.getDate()
+    );
+  }
+
   app.get("/api/tasks/date", ensureAuthenticated, async (req, res) => {
     try {
       const tasks = await storage.getAllTasks();
       const users = Array.from((await storage.getUsers()).values());
 
-      // If date is provided, filter tasks for that date
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
         const kstOffset = 9 * 60;
@@ -317,7 +308,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           );
         });
 
-        // Add username to each task
         const tasksWithUsernames = filteredTasks.map(task => {
           const user = users.find(u => u.id === task.userId);
           return {
@@ -336,13 +326,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add this endpoint after other task routes
   app.get("/api/tasks/previous", ensureAuthenticated, async (req, res) => {
     try {
-      console.log("Fetching last recorded tasks for user:", req.user!.id);
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      // Sort tasks by date in descending order
       const sortedTasks = tasks.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
@@ -351,25 +338,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
 
-      // Get the date of the most recent task
-      const kstOffset = 9 * 60; // KST is UTC+9
+      const kstOffset = 9 * 60; 
       const mostRecentTaskDate = new Date(sortedTasks[0].createdAt);
       const mostRecentKST = new Date(mostRecentTaskDate.getTime() + kstOffset * 60000);
       mostRecentKST.setHours(0, 0, 0, 0);
 
-      console.log("Most recent task date (KST):", mostRecentKST.toISOString());
-
-      // Filter tasks from the most recent day
       const lastDayTasks = sortedTasks.filter(task => {
         const taskDate = new Date(task.createdAt);
         const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
         taskKST.setHours(0, 0, 0, 0);
 
-        console.log("Comparing task date (KST):", taskKST.toISOString(), "for task:", task.title);
         return taskKST.getTime() === mostRecentKST.getTime();
       });
 
-      console.log("Found tasks from last recorded day:", lastDayTasks.length);
       res.json(lastDayTasks);
     } catch (err) {
       console.error("Error fetching last recorded tasks:", err);
@@ -377,7 +358,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update team tasks endpoint
   app.get("/api/tasks/team/:team", ensureAuthenticated, async (req, res) => {
     try {
       const users = Array.from((await storage.getUsers()).values());
@@ -386,7 +366,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const allTasks = await storage.getAllTasks();
 
-      // Filter tasks for team members and today only (KST)
       const tasks = allTasks.filter(task =>
         teamUserIds.includes(task.userId) &&
         isTaskFromToday(new Date(task.createdAt))
@@ -432,17 +411,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/tasks/:id", ensureAuthenticated, async (req, res) => {
     try {
-      console.log("Updating task:", req.params.id, req.body);
       const taskData = await storage.updateTask(parseInt(req.params.id), req.body);
-      console.log("Task updated successfully:", taskData);
       res.json(taskData);
     } catch (err) {
-      console.error("Error updating task:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });
 
-  // Project routes
   app.post("/api/projects", ensureAuthenticated, async (req, res) => {
     try {
       const projectData = insertProjectSchema.parse(req.body);
@@ -458,13 +433,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(projects);
   });
 
-  // Update the project tasks endpoint to properly handle project tasks
   app.get("/api/tasks/project", ensureAuthenticated, async (req, res) => {
     try {
       const tasks = await storage.getAllTasks();
       const users = Array.from((await storage.getUsers()).values());
 
-      // Add username to each task and filter only today's tasks with projectId
       const projectTasks = tasks
         .filter(task =>
           task.projectId !== null &&
@@ -485,7 +458,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
-  // Delete project
   app.delete("/api/projects/:id", ensureAuthenticated, async (req, res) => {
     try {
       await storage.deleteProject(parseInt(req.params.id));
@@ -495,7 +467,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // New Backup and Archive Routes
   app.get("/api/backup", ensureAdmin, async (req, res) => {
     try {
       const backup = await storage.createBackup();
