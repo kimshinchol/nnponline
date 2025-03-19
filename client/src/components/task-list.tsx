@@ -53,7 +53,7 @@ export function TaskList({
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [deleteTaskId, setDeleteTaskId] = useState<number | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -84,6 +84,7 @@ export function TaskList({
   };
 
   const handleStatusClick = (taskId: number, currentStatus: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent row click when clicking status
     if (onStatusChange) {
       const newStatus = getNextStatus(currentStatus);
       if (newStatus === "완료") {
@@ -99,7 +100,8 @@ export function TaskList({
     }
   };
 
-  const handleEdit = (task: Task) => {
+  const handleEdit = (task: Task, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent row click when clicking edit
     setEditingTask(task);
   };
 
@@ -108,6 +110,10 @@ export function TaskList({
       onEdit(editingTask.id, updatedTask);
       setEditingTask(null);
     }
+  };
+
+  const handleRowClick = (task: Task) => {
+    setSelectedTask(task);
   };
 
   if (isLoading) {
@@ -165,7 +171,8 @@ export function TaskList({
                   exit="exit"
                   variants={tableRowVariants}
                   layout
-                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer"
+                  onClick={() => handleRowClick(task)}
                 >
                   <TableCell className="font-medium truncate max-w-[150px] sm:max-w-none">
                     {task.title}
@@ -210,7 +217,7 @@ export function TaskList({
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleEdit(task)}
+                                  onClick={(e) => handleEdit(task, e)}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
@@ -239,6 +246,7 @@ export function TaskList({
                                 <Button
                                   variant="destructive"
                                   size="sm"
+                                  onClick={(e) => e.stopPropagation()}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -249,8 +257,11 @@ export function TaskList({
                                 <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>NO</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onDelete(task.id)}>
+                                <AlertDialogCancel onClick={(e) => e.stopPropagation()}>NO</AlertDialogCancel>
+                                <AlertDialogAction onClick={(e) => {
+                                  e.stopPropagation();
+                                  onDelete(task.id);
+                                }}>
                                   YES
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -266,6 +277,39 @@ export function TaskList({
           </TableBody>
         </Table>
       </div>
+
+      {/* Task Details Dialog */}
+      <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
+        <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
+          <DialogHeader>
+            <DialogTitle>{selectedTask?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium mb-1">Description</h4>
+              <p className="text-sm text-muted-foreground">{selectedTask?.description || "No description"}</p>
+            </div>
+            {showProject && (
+              <div>
+                <h4 className="text-sm font-medium mb-1">Project</h4>
+                <p className="text-sm text-muted-foreground">{selectedTask && getProjectName(selectedTask.projectId)}</p>
+              </div>
+            )}
+            {showAuthor && (
+              <div>
+                <h4 className="text-sm font-medium mb-1">Author</h4>
+                <p className="text-sm text-muted-foreground">{selectedTask?.username || "Unknown"}</p>
+              </div>
+            )}
+            <div>
+              <h4 className="text-sm font-medium mb-1">Status</h4>
+              <Badge className={`${selectedTask && getStatusColor(selectedTask.status)}`}>
+                {selectedTask?.status}
+              </Badge>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
