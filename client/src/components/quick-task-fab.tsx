@@ -16,8 +16,8 @@ export function QuickTaskFAB() {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Show FAB if user is authenticated
-    if (user) {
+    // Show FAB if user is authenticated and is not an admin
+    if (user && !user.isAdmin) {
       setIsVisible(true);
     } else {
       setIsVisible(false);
@@ -29,7 +29,7 @@ export function QuickTaskFAB() {
   });
 
   const createTaskMutation = useMutation({
-    mutationFn: async (task: InsertTask & { assignedUserId?: number }) => {
+    mutationFn: async (task: InsertTask) => {
       const res = await apiRequest("POST", "/api/tasks", task);
       if (!res.ok) {
         const error = await res.json();
