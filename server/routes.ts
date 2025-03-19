@@ -297,17 +297,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  function isTaskFromToday(taskDate: Date): boolean {
-    const kstOffset = 9 * 60; 
-    const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
-    const nowKST = new Date(Date.now() + kstOffset * 60000);
+function isTaskFromToday(taskDate: Date): boolean {
+  const kstOffset = 9 * 60; 
+  const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
+  const nowKST = new Date(Date.now() + kstOffset * 60000);
 
-    return (
-      taskKST.getFullYear() === nowKST.getFullYear() &&
-      taskKST.getMonth() === nowKST.getMonth() &&
-      taskKST.getDate() === nowKST.getDate()
-    );
-  }
+  return (
+    taskKST.getFullYear() === nowKST.getFullYear() &&
+    taskKST.getMonth() === nowKST.getMonth() &&
+    taskKST.getDate() === nowKST.getDate()
+  );
+}
 
   app.get("/api/tasks/date", ensureAuthenticated, async (req, res) => {
     try {
@@ -388,13 +388,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const allTasks = await storage.getAllTasks();
 
-      // Filter tasks that either:
-      // 1. Were created by team members today
-      // 2. Were assigned to team members (by admin or self) today
       const tasks = allTasks.filter(task => {
-        const isTaskFromToday = isTaskFromToday(new Date(task.createdAt));
+        const isTaskFromCurrentDay = isTaskFromToday(new Date(task.createdAt));
         const isTeamMemberTask = teamUserIds.includes(task.userId);
-        return isTaskFromToday && isTeamMemberTask;
+        return isTaskFromCurrentDay && isTeamMemberTask;
       });
 
       const tasksWithUsernames = tasks.map(task => {

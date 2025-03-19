@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +39,7 @@ interface TaskListProps {
   showProject?: boolean;
   isLoading?: boolean;
   createLoading?: boolean;
-  showCreateButton?: boolean; // New prop to control create button visibility
+  showCreateButton?: boolean;
 }
 
 export function TaskList({
@@ -54,13 +54,14 @@ export function TaskList({
   showProject = true,
   isLoading,
   createLoading,
-  showCreateButton = false // Default to false
+  showCreateButton = false
 }: TaskListProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -91,7 +92,7 @@ export function TaskList({
   };
 
   const handleStatusClick = (taskId: number, currentStatus: string, event: React.MouseEvent) => {
-    event.stopPropagation(); 
+    event.stopPropagation();
     if (onStatusChange) {
       const newStatus = getNextStatus(currentStatus);
       if (newStatus === "완료") {
@@ -107,11 +108,6 @@ export function TaskList({
     }
   };
 
-  const handleEdit = (task: Task, event: React.MouseEvent) => {
-    event.stopPropagation(); 
-    setEditingTask(task);
-  };
-
   const handleEditSubmit = (updatedTask: Partial<Task>) => {
     if (editingTask && onEdit) {
       onEdit(editingTask.id, updatedTask);
@@ -119,8 +115,11 @@ export function TaskList({
     }
   };
 
-  const handleRowClick = (task: Task) => {
-    setSelectedTask(task);
+  const handleDelete = (taskId: number) => {
+    if (onDelete) {
+      onDelete(taskId);
+      setTaskToDelete(null);
+    }
   };
 
   if (isLoading) {
@@ -150,9 +149,9 @@ export function TaskList({
   return (
     <>
       {showCelebration && celebrationPosition && (
-        <Celebration 
+        <Celebration
           position={celebrationPosition}
-          onComplete={() => setShowCelebration(false)} 
+          onComplete={() => setShowCelebration(false)}
         />
       )}
       <div className="w-full overflow-hidden">
@@ -191,7 +190,7 @@ export function TaskList({
                   variants={tableRowVariants}
                   layout
                   className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer"
-                  onClick={() => handleRowClick(task)}
+                  onClick={() => setSelectedTask(task)}
                 >
                   <TableCell className="font-medium truncate max-w-[150px] sm:max-w-none">
                     {task.title}
@@ -204,7 +203,7 @@ export function TaskList({
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Badge 
+                      <Badge
                         className={`${getStatusColor(task.status)} cursor-pointer min-w-[60px] text-center inline-flex justify-center items-center text-xs sm:text-sm`}
                         onClick={(e) => handleStatusClick(task.id, task.status, e)}
                       >
@@ -226,62 +225,46 @@ export function TaskList({
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {onEdit && (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <motion.div
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                style={{ display: 'inline-block' }}
-                              >
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => handleEdit(task, e)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                              </motion.div>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
-                              <DialogHeader>
-                                <DialogTitle>Edit Task</DialogTitle>
-                              </DialogHeader>
-                              <TaskForm
-                                onSubmit={handleEditSubmit}
-                                projects={projects}
-                                initialData={task}
-                              />
-                            </DialogContent>
-                          </Dialog>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingTask(task);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
                         )}
                         {onDelete && (
-                          <AlertDialog>
+                          <AlertDialog open={taskToDelete === task.id}>
                             <AlertDialogTrigger asChild>
-                              <motion.div
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                style={{ display: 'inline-block' }}
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskToDelete(task.id);
+                                }}
                               >
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </motion.div>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  이 작업을 삭제하면 복구할 수 없습니다.
+                                </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel onClick={(e) => e.stopPropagation()}>NO</AlertDialogCancel>
-                                <AlertDialogAction onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDelete(task.id);
-                                }}>
-                                  YES
+                                <AlertDialogCancel onClick={() => setTaskToDelete(null)}>
+                                  아니오
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(task.id)}
+                                >
+                                  예
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -327,6 +310,20 @@ export function TaskList({
               </Badge>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Task Dialog */}
+      <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          <TaskForm
+            onSubmit={handleEditSubmit}
+            projects={projects}
+            initialData={editingTask || undefined}
+          />
         </DialogContent>
       </Dialog>
 
