@@ -158,7 +158,7 @@ export default function ProjectView() {
                 {/* Project List */}
                 <div className="mt-8">
                   <h3 className="text-sm font-medium mb-4">Existing Projects</h3>
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                     {projectsLoading ? (
                       <p className="text-sm text-muted-foreground">Loading projects...</p>
                     ) : projects?.length === 0 ? (
