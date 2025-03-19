@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import {
   HomeIcon,
@@ -13,10 +13,13 @@ import { Button } from "@/components/ui/button";
 
 export function Navigation() {
   const { user, logoutMutation } = useAuth();
+  const [location] = useLocation();
 
   const handleLogout = () => {
     logoutMutation.mutate();
   };
+
+  const isActive = (path: string) => location === path;
 
   return (
     <nav className="fixed h-screen w-64 bg-sidebar border-r p-4 flex flex-col">
@@ -28,7 +31,7 @@ export function Navigation() {
         <Link href="/">
           <Button 
             variant="ghost" 
-            className="w-full justify-start"
+            className={`w-full justify-start ${isActive("/") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
           >
             <HomeIcon className="mr-2 h-4 w-4" />
             Dashboard
@@ -37,7 +40,7 @@ export function Navigation() {
         <Link href="/personal">
           <Button 
             variant="ghost" 
-            className="w-full justify-start"
+            className={`w-full justify-start ${isActive("/personal") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
           >
             <UserIcon className="mr-2 h-4 w-4" />
             Tasks
@@ -46,7 +49,7 @@ export function Navigation() {
         <Link href="/team">
           <Button 
             variant="ghost" 
-            className="w-full justify-start"
+            className={`w-full justify-start ${isActive("/team") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
           >
             <UsersIcon className="mr-2 h-4 w-4" />
             Team
@@ -55,7 +58,7 @@ export function Navigation() {
         <Link href="/project">
           <Button 
             variant="ghost" 
-            className="w-full justify-start"
+            className={`w-full justify-start ${isActive("/project") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
           >
             <FolderIcon className="mr-2 h-4 w-4" />
             Project
@@ -64,7 +67,7 @@ export function Navigation() {
         <Link href="/scheduler">
           <Button 
             variant="ghost" 
-            className="w-full justify-start"
+            className={`w-full justify-start ${isActive("/scheduler") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             Scheduler
@@ -75,7 +78,7 @@ export function Navigation() {
           <Link href="/admin">
             <Button 
               variant="ghost" 
-              className="w-full justify-start"
+              className={`w-full justify-start ${isActive("/admin") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
               <ShieldIcon className="mr-2 h-4 w-4" />
               Admin
