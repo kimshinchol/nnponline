@@ -114,7 +114,6 @@ export function TaskList({
     return <div>Loading tasks...</div>;
   }
 
-  // Animation variants
   const tableRowVariants = {
     hidden: { opacity: 0, x: 20 },
     visible: (i: number) => ({
@@ -143,114 +142,130 @@ export function TaskList({
           onComplete={() => setShowCelebration(false)} 
         />
       )}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Status</TableHead>
-            {showProject && <TableHead>Project</TableHead>}
-            {showAuthor && <TableHead>Author</TableHead>}
-            {showActions && <TableHead>Actions</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <AnimatePresence mode="popLayout">
-            {tasks.map((task, index) => (
-              <motion.tr
-                key={task.id}
-                custom={index}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={tableRowVariants}
-                layout
-                className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
-              >
-                <TableCell className="font-medium">{task.title}</TableCell>
-                <TableCell>{task.description}</TableCell>
-                <TableCell>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Badge 
-                      className={`${getStatusColor(task.status)} cursor-pointer min-w-[60px] text-center inline-flex justify-center items-center`}
-                      onClick={(e) => handleStatusClick(task.id, task.status, e)}
-                    >
-                      {task.status}
-                    </Badge>
-                  </motion.div>
-                </TableCell>
-                {showProject && <TableCell>{getProjectName(task.projectId)}</TableCell>}
-                {showAuthor && <TableCell>{task.username || "Unknown"}</TableCell>}
-                {showActions && (
-                  <TableCell className="space-x-2">
-                    {onEdit && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            style={{ display: 'inline-block' }}
-                          >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(task)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </motion.div>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Edit Task</DialogTitle>
-                          </DialogHeader>
-                          <TaskForm
-                            onSubmit={handleEditSubmit}
-                            projects={projects}
-                            initialData={task}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                    {onDelete && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            style={{ display: 'inline-block' }}
-                          >
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </motion.div>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>NO</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDelete(task.id)}>
-                              YES
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
+      <div className="w-full overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[25%]">Title</TableHead>
+              <TableHead className="w-[30%] hidden sm:table-cell">Description</TableHead>
+              <TableHead className="w-[15%]">Status</TableHead>
+              {showProject && <TableHead className="w-[15%] hidden sm:table-cell">Project</TableHead>}
+              {showAuthor && <TableHead className="w-[15%] hidden sm:table-cell">Author</TableHead>}
+              {showActions && <TableHead className="w-[15%]">Actions</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence mode="popLayout">
+              {tasks.map((task, index) => (
+                <motion.tr
+                  key={task.id}
+                  custom={index}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={tableRowVariants}
+                  layout
+                  className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                >
+                  <TableCell className="font-medium truncate max-w-[150px] sm:max-w-none">
+                    {task.title}
                   </TableCell>
-                )}
-              </motion.tr>
-            ))}
-          </AnimatePresence>
-        </TableBody>
-      </Table>
+                  <TableCell className="hidden sm:table-cell">
+                    <span className="line-clamp-1">{task.description}</span>
+                  </TableCell>
+                  <TableCell>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Badge 
+                        className={`${getStatusColor(task.status)} cursor-pointer min-w-[60px] text-center inline-flex justify-center items-center text-xs sm:text-sm`}
+                        onClick={(e) => handleStatusClick(task.id, task.status, e)}
+                      >
+                        {task.status}
+                      </Badge>
+                    </motion.div>
+                  </TableCell>
+                  {showProject && (
+                    <TableCell className="hidden sm:table-cell">
+                      <span className="line-clamp-1">{getProjectName(task.projectId)}</span>
+                    </TableCell>
+                  )}
+                  {showAuthor && (
+                    <TableCell className="hidden sm:table-cell">
+                      <span className="line-clamp-1">{task.username || "Unknown"}</span>
+                    </TableCell>
+                  )}
+                  {showActions && (
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {onEdit && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                style={{ display: 'inline-block' }}
+                              >
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEdit(task)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </motion.div>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
+                              <DialogHeader>
+                                <DialogTitle>Edit Task</DialogTitle>
+                              </DialogHeader>
+                              <TaskForm
+                                onSubmit={handleEditSubmit}
+                                projects={projects}
+                                initialData={task}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                        )}
+                        {onDelete && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                style={{ display: 'inline-block' }}
+                              >
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </motion.div>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>NO</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onDelete(task.id)}>
+                                  YES
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
+                </motion.tr>
+              ))}
+            </AnimatePresence>
+          </TableBody>
+        </Table>
+      </div>
     </>
   );
 }

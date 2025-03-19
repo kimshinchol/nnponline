@@ -21,7 +21,6 @@ export default function ProjectView() {
   const { toast } = useToast();
   const [projectName, setProjectName] = useState("");
 
-  // Fetch projects and their tasks
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
   });
@@ -30,7 +29,6 @@ export default function ProjectView() {
     queryKey: ["/api/tasks/project"],
   });
 
-  // Group tasks by project
   const tasksByProject = tasks?.reduce((acc, task) => {
     const projectId = task.projectId;
     if (!projectId) return acc;
@@ -41,7 +39,6 @@ export default function ProjectView() {
     return acc;
   }, {} as Record<number, Task[]>);
 
-  // Mutations
   const createProjectMutation = useMutation({
     mutationFn: async (data: InsertProject) => {
       const res = await apiRequest("POST", "/api/projects", data);
@@ -73,16 +70,17 @@ export default function ProjectView() {
     <div className="flex min-h-screen">
       <Navigation />
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-center lg:justify-end mb-8">
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="h-8 mb-6"></div> {/* Spacer for mobile menu */}
+          <div className="flex justify-start mb-6">
             <Dialog>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button size="sm" className="text-sm">
+                  <Plus className="h-4 w-4 mr-1" />
                   New Project
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
                 <DialogHeader>
                   <DialogTitle>Create New Project</DialogTitle>
                 </DialogHeader>
@@ -95,10 +93,10 @@ export default function ProjectView() {
                   <Button
                     onClick={handleCreateProject}
                     disabled={createProjectMutation.isPending}
+                    size="sm"
+                    className="w-full"
                   >
-                    {createProjectMutation.isPending
-                      ? "Creating..."
-                      : "Create Project"}
+                    {createProjectMutation.isPending ? "Creating..." : "Create Project"}
                   </Button>
                 </div>
               </DialogContent>
@@ -110,30 +108,30 @@ export default function ProjectView() {
           ) : !tasksByProject || Object.keys(tasksByProject).length === 0 ? (
             <Card>
               <CardHeader>
-                <CardTitle>No Tasks Found</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-sm">No Tasks Found</CardTitle>
+                <CardDescription className="text-xs">
                   Create tasks in your personal view and assign them to projects
                 </CardDescription>
               </CardHeader>
             </Card>
           ) : (
-            <div className="space-y-8 overflow-x-hidden">
+            <div className="space-y-4 w-full overflow-x-hidden">
               {Object.entries(tasksByProject).map(([projectId, projectTasks]) => {
                 const project = projects?.find(
                   (p) => p.id === parseInt(projectId)
                 );
                 return (
-                  <Card key={projectId}>
+                  <Card key={projectId} className="w-full">
                     <CardHeader>
                       <div>
-                        <CardTitle>{project?.name || "Untitled Project"}</CardTitle>
-                        <CardDescription>
+                        <CardTitle className="text-sm">{project?.name || "Untitled Project"}</CardTitle>
+                        <CardDescription className="text-xs">
                           {projectTasks.length} task
                           {projectTasks.length !== 1 ? "s" : ""}
                         </CardDescription>
                       </div>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto">
+                    <CardContent className="w-full overflow-x-hidden">
                       <TaskList
                         tasks={projectTasks}
                         projects={projects}

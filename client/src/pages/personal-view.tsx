@@ -122,16 +122,17 @@ export default function PersonalView() {
     <div className="flex min-h-screen">
       <Navigation />
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-center lg:justify-end mb-8">
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="h-8 mb-6"></div> {/* Spacer for mobile menu */}
+          <div className="flex justify-start mb-6">
             <Dialog>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button size="sm" className="text-sm">
+                  <Plus className="h-4 w-4 mr-1" />
                   New Task
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
                 <DialogHeader>
                   <DialogTitle>Create New Task</DialogTitle>
                 </DialogHeader>
@@ -144,7 +145,7 @@ export default function PersonalView() {
             </Dialog>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-hidden">
             <TaskList
               tasks={tasks || []}
               onStatusChange={handleStatusChange}
