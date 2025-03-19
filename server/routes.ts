@@ -297,38 +297,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add this endpoint after other task routes
   app.get("/api/tasks/previous", ensureAuthenticated, async (req, res) => {
     try {
-      console.log("Fetching previous tasks for user:", req.user!.id);
+      console.log("Fetching last recorded tasks for user:", req.user!.id);
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      // Get yesterday's date in KST
+      // Sort tasks by date in descending order
+      const sortedTasks = tasks.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      if (sortedTasks.length === 0) {
+        return res.json([]);
+      }
+
+      // Get the date of the most recent task
       const kstOffset = 9 * 60; // KST is UTC+9
-      const nowKST = new Date(Date.now() + kstOffset * 60000);
-      const yesterdayKST = new Date(nowKST);
-      yesterdayKST.setDate(yesterdayKST.getDate() - 1);
-      yesterdayKST.setHours(0, 0, 0, 0);
+      const mostRecentTaskDate = new Date(sortedTasks[0].createdAt);
+      const mostRecentKST = new Date(mostRecentTaskDate.getTime() + kstOffset * 60000);
+      mostRecentKST.setHours(0, 0, 0, 0);
 
-      const todayKST = new Date(nowKST);
-      todayKST.setHours(0, 0, 0, 0);
+      console.log("Most recent task date (KST):", mostRecentKST.toISOString());
 
-      console.log("Yesterday KST:", yesterdayKST.toISOString());
-      console.log("Today KST:", todayKST.toISOString());
-
-      // Filter tasks from yesterday
-      const yesterdayTasks = tasks.filter(task => {
+      // Filter tasks from the most recent day
+      const lastDayTasks = sortedTasks.filter(task => {
         const taskDate = new Date(task.createdAt);
         const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
         taskKST.setHours(0, 0, 0, 0);
 
-        console.log("Task date KST:", taskKST.toISOString(), "for task:", task.title);
-
-        const isYesterday = taskKST.getTime() === yesterdayKST.getTime();
-        return isYesterday;
+        console.log("Comparing task date (KST):", taskKST.toISOString(), "for task:", task.title);
+        return taskKST.getTime() === mostRecentKST.getTime();
       });
 
-      console.log("Filtered yesterday's tasks:", yesterdayTasks.length);
-      res.json(yesterdayTasks);
+      console.log("Found tasks from last recorded day:", lastDayTasks.length);
+      res.json(lastDayTasks);
     } catch (err) {
-      console.error("Error fetching previous tasks:", err);
+      console.error("Error fetching last recorded tasks:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });

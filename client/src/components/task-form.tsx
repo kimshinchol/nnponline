@@ -76,7 +76,7 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
       <Dialog open={showPreviousTasks} onOpenChange={setShowPreviousTasks}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Yesterday's Tasks</DialogTitle>
+            <DialogTitle>Last Tasks</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
             {loadingPreviousTasks ? (
@@ -98,7 +98,7 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
                 </Button>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No tasks found from yesterday.</p>
+              <p className="text-sm text-muted-foreground">No previous tasks found.</p>
             )}
           </div>
         </DialogContent>
