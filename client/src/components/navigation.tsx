@@ -21,6 +21,9 @@ export function Navigation() {
 
   const isActive = (path: string) => location === path;
 
+  // Only render navigation if user is authenticated
+  if (!user) return null;
+
   return (
     <nav className="fixed h-screen w-64 bg-sidebar border-r p-4 flex flex-col">
       <div className="flex items-center mb-8 pl-2">
