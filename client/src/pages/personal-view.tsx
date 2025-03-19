@@ -59,6 +59,33 @@ export default function PersonalView() {
     },
   });
 
+  const createTaskMutation = useMutation({
+    mutationFn: async (task: InsertTask) => {
+      const res = await apiRequest("POST", "/api/tasks", task);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to create task");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+      toast({
+        title: "Success",
+        description: "Task created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create task",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleEditTask = (taskId: number, updatedTask: Partial<Task>) => {
     updateTaskMutation.mutate({ id: taskId, data: updatedTask });
   };
@@ -83,8 +110,10 @@ export default function PersonalView() {
               onStatusChange={handleStatusChange}
               onDelete={handleDeleteTask}
               onEdit={handleEditTask}
-              projects={projects}
+              onCreate={createTaskMutation.mutate}
+              projects={projects || []}
               isLoading={tasksLoading}
+              createLoading={createTaskMutation.isPending}
             />
           </div>
         </div>

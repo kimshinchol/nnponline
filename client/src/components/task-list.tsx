@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -23,7 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { TaskForm } from "./task-form";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import { Celebration } from "@/components/ui/celebration";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -32,11 +32,13 @@ interface TaskListProps {
   onStatusChange?: (taskId: number, status: string) => void;
   onDelete?: (taskId: number) => void;
   onEdit?: (taskId: number, updatedTask: Partial<Task>) => void;
+  onCreate?: (task: any) => void; // Assuming InsertTask type is defined elsewhere.  Using 'any' for compilation.
   projects?: { id: number; name: string }[];
   showAuthor?: boolean;
   showActions?: boolean;
   showProject?: boolean;
   isLoading?: boolean;
+  createLoading?: boolean;
 }
 
 export function TaskList({
@@ -44,16 +46,19 @@ export function TaskList({
   onStatusChange,
   onDelete,
   onEdit,
+  onCreate,
   projects = [],
   showAuthor = false,
   showActions = true,
   showProject = true,
-  isLoading
+  isLoading,
+  createLoading
 }: TaskListProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -84,7 +89,7 @@ export function TaskList({
   };
 
   const handleStatusClick = (taskId: number, currentStatus: string, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent row click when clicking status
+    event.stopPropagation(); 
     if (onStatusChange) {
       const newStatus = getNextStatus(currentStatus);
       if (newStatus === "완료") {
@@ -101,7 +106,7 @@ export function TaskList({
   };
 
   const handleEdit = (task: Task, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent row click when clicking edit
+    event.stopPropagation(); 
     setEditingTask(task);
   };
 
@@ -149,6 +154,16 @@ export function TaskList({
         />
       )}
       <div className="w-full overflow-hidden">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Tasks</h2>
+          <Button
+            onClick={() => setShowNewTaskDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Task
+          </Button>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -308,6 +323,23 @@ export function TaskList({
               </Badge>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Task Dialog */}
+      <Dialog open={showNewTaskDialog} onOpenChange={setShowNewTaskDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Task</DialogTitle>
+          </DialogHeader>
+          <TaskForm
+            onSubmit={(data) => {
+              onCreate?.(data);
+              setShowNewTaskDialog(false);
+            }}
+            projects={projects}
+            isLoading={createLoading}
+          />
         </DialogContent>
       </Dialog>
     </>
