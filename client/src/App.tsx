@@ -15,7 +15,6 @@ import AdminPage from "@/pages/admin-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { Redirect } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { QuickTaskFAB } from "@/components/quick-task-fab";
 
 // Admin-only protected route component
 function AdminRoute({ path, component: Component }: { path: string; component: () => React.JSX.Element }) {
@@ -29,24 +28,18 @@ function AdminRoute({ path, component: Component }: { path: string; component: (
 }
 
 function Router() {
-  const { user } = useAuth();
-  const showFAB = user && !["/auth", "/web_admin", "/admin"].includes(window.location.pathname);
-
   return (
-    <>
-      <Switch>
-        <Route path="/auth" component={AuthPage} />
-        <Route path="/web_admin" component={WebAdminAuthPage} />
-        <ProtectedRoute path="/" component={HomePage} />
-        <ProtectedRoute path="/personal" component={PersonalView} />
-        <ProtectedRoute path="/scheduler" component={SchedulerView} />
-        <ProtectedRoute path="/team" component={TeamView} />
-        <ProtectedRoute path="/project" component={ProjectView} />
-        <AdminRoute path="/admin" component={AdminPage} />
-        <Route component={NotFound} />
-      </Switch>
-      {showFAB && <QuickTaskFAB />}
-    </>
+    <Switch>
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/web_admin" component={WebAdminAuthPage} />
+      <ProtectedRoute path="/" component={HomePage} />
+      <ProtectedRoute path="/personal" component={PersonalView} />
+      <ProtectedRoute path="/scheduler" component={SchedulerView} />
+      <ProtectedRoute path="/team" component={TeamView} />
+      <ProtectedRoute path="/project" component={ProjectView} />
+      <AdminRoute path="/admin" component={AdminPage} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
