@@ -11,9 +11,9 @@ export default function HomePage() {
     queryKey: ["/api/tasks/user"],
   });
 
-  const pendingTasks = tasks?.filter((task) => task.status === "pending").length || 0;
-  const inProgressTasks = tasks?.filter((task) => task.status === "in-progress").length || 0;
-  const completedTasks = tasks?.filter((task) => task.status === "completed").length || 0;
+  const pendingTasks = tasks?.filter((task) => task.status === "작업전").length || 0;
+  const inProgressTasks = tasks?.filter((task) => task.status === "작업중").length || 0;
+  const completedTasks = tasks?.filter((task) => task.status === "완료").length || 0;
 
   return (
     <div className="flex min-h-screen">
@@ -21,32 +21,32 @@ export default function HomePage() {
       <main className="flex-1 p-8 ml-64">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Welcome, {user?.username}!</h1>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card>
-              <CardHeader>
-                <CardTitle>Pending Tasks</CardTitle>
+              <CardHeader className="text-center">
+                <CardTitle className="flex justify-center">진행전</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{pendingTasks}</p>
+              <CardContent className="text-center">
+                <p className="text-3xl font-bold flex justify-center items-center">{pendingTasks}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
-              <CardHeader>
-                <CardTitle>In Progress</CardTitle>
+              <CardHeader className="text-center">
+                <CardTitle className="flex justify-center">진행중</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{inProgressTasks}</p>
+              <CardContent className="text-center">
+                <p className="text-3xl font-bold flex justify-center items-center">{inProgressTasks}</p>
               </CardContent>
             </Card>
-            
+
             <Card>
-              <CardHeader>
-                <CardTitle>Completed</CardTitle>
+              <CardHeader className="text-center">
+                <CardTitle className="flex justify-center">완료</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold">{completedTasks}</p>
+              <CardContent className="text-center">
+                <p className="text-3xl font-bold flex justify-center items-center">{completedTasks}</p>
               </CardContent>
             </Card>
           </div>
