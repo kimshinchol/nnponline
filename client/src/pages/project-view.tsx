@@ -72,7 +72,7 @@ export default function ProjectView() {
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto w-full">
           <div className="h-8 mb-6"></div> {/* Spacer for mobile menu */}
-          <div className="flex justify-start mb-6">
+          <div className="flex justify-end mb-6"> {/* Changed from justify-start to justify-end */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button size="sm" className="text-sm">

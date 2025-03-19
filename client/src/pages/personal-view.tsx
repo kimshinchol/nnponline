@@ -1,19 +1,9 @@
 import { Navigation } from "@/components/navigation";
 import { TaskList } from "@/components/task-list";
-import { TaskForm } from "@/components/task-form";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Task, InsertTask } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 export default function PersonalView() {
   const { toast } = useToast();
@@ -24,39 +14,6 @@ export default function PersonalView() {
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
-  });
-
-  const createTaskMutation = useMutation({
-    mutationFn: async (task: InsertTask) => {
-      try {
-        console.log("Submitting task:", task);
-        const res = await apiRequest("POST", "/api/tasks", task);
-        if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.message || "Failed to create task");
-        }
-        return res.json();
-      } catch (error) {
-        console.error("Task creation error:", error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
-      toast({
-        title: "Success",
-        description: "Task created successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create task",
-        variant: "destructive",
-      });
-    },
   });
 
   const updateTaskMutation = useMutation({
@@ -102,10 +59,6 @@ export default function PersonalView() {
     },
   });
 
-  const handleCreateTask = (data: InsertTask) => {
-    createTaskMutation.mutate(data);
-  };
-
   const handleEditTask = (taskId: number, updatedTask: Partial<Task>) => {
     updateTaskMutation.mutate({ id: taskId, data: updatedTask });
   };
@@ -124,27 +77,6 @@ export default function PersonalView() {
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto w-full">
           <div className="h-8 mb-6"></div> {/* Spacer for mobile menu */}
-          <div className="flex justify-start mb-6">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button size="sm" className="text-sm">
-                  <Plus className="h-4 w-4 mr-1" />
-                  New Task
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
-                <DialogHeader>
-                  <DialogTitle>Create New Task</DialogTitle>
-                </DialogHeader>
-                <TaskForm
-                  onSubmit={handleCreateTask}
-                  projects={projects || []}
-                  isLoading={createTaskMutation.isPending}
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
-
           <div className="w-full overflow-x-hidden">
             <TaskList
               tasks={tasks || []}
