@@ -15,26 +15,17 @@ export default function SchedulerView() {
   });
 
   const { data: tasks, isLoading } = useQuery<Task[]>({
-    queryKey: ["/api/tasks/user", selectedDate?.toISOString()],
+    queryKey: ["/api/tasks/date", selectedDate?.toISOString()],
+    queryFn: async () => {
+      const res = await fetch(`/api/tasks/date?date=${selectedDate?.toISOString()}`);
+      if (!res.ok) throw new Error("Failed to fetch tasks");
+      return res.json();
+    },
     enabled: !!selectedDate,
   });
 
-  // Filter tasks for the selected date and organize by project, using KST
+  // Filter tasks for the selected date and organize by project
   const tasksByProject = tasks?.reduce((acc, task) => {
-    if (!selectedDate) return acc;
-
-    const kstOffset = 9 * 60; // KST is UTC+9
-    const taskDate = new Date(task.createdAt);
-    const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
-    const kstSelectedDate = new Date(selectedDate.getTime() + kstOffset * 60000);
-
-    const isSameDate =
-      kstTaskDate.getFullYear() === kstSelectedDate.getFullYear() &&
-      kstTaskDate.getMonth() === kstSelectedDate.getMonth() &&
-      kstTaskDate.getDate() === kstSelectedDate.getDate();
-
-    if (!isSameDate) return acc;
-
     const projectId = task.projectId || "unassigned";
     if (!acc[projectId]) {
       acc[projectId] = [];
@@ -91,6 +82,7 @@ export default function SchedulerView() {
                     isLoading={isLoading}
                     showActions={false}
                     showProject={false}
+                    showAuthor={true}
                   />
                 </CardContent>
               </Card>
@@ -110,6 +102,7 @@ export default function SchedulerView() {
                       isLoading={isLoading}
                       showActions={false}
                       showProject={false}
+                      showAuthor={true}
                     />
                   </CardContent>
                 </Card>

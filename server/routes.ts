@@ -295,6 +295,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add this endpoint after other task routes
+  app.get("/api/tasks/date", ensureAuthenticated, async (req, res) => {
+    try {
+      const tasks = await storage.getAllTasks();
+      const users = Array.from((await storage.getUsers()).values());
+
+      // If date is provided, filter tasks for that date
+      if (req.query.date) {
+        const filterDate = new Date(req.query.date as string);
+        const kstOffset = 9 * 60;
+        const kstFilterDate = new Date(filterDate.getTime() + kstOffset * 60000);
+        kstFilterDate.setHours(0, 0, 0, 0);
+
+        const filteredTasks = tasks.filter(task => {
+          const taskDate = new Date(task.createdAt);
+          const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
+          kstTaskDate.setHours(0, 0, 0, 0);
+
+          return (
+            kstTaskDate.getTime() === kstFilterDate.getTime()
+          );
+        });
+
+        // Add username to each task
+        const tasksWithUsernames = filteredTasks.map(task => {
+          const user = users.find(u => u.id === task.userId);
+          return {
+            ...task,
+            username: user?.username || 'Unknown'
+          };
+        });
+
+        return res.json(tasksWithUsernames);
+      }
+
+      res.json([]);
+    } catch (err) {
+      console.error("Error fetching tasks by date:", err);
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  // Add this endpoint after other task routes
   app.get("/api/tasks/previous", ensureAuthenticated, async (req, res) => {
     try {
       console.log("Fetching last recorded tasks for user:", req.user!.id);
