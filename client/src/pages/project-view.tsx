@@ -72,10 +72,9 @@ export default function ProjectView() {
   return (
     <div className="flex min-h-screen">
       <Navigation />
-      <main className="flex-1 p-8 ml-64">
+      <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <div className="w-20"></div> {/* Spacer to maintain layout */}
+          <div className="flex justify-center lg:justify-end mb-8">
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
@@ -83,7 +82,7 @@ export default function ProjectView() {
                   New Project
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Create New Project</DialogTitle>
                 </DialogHeader>
@@ -118,7 +117,7 @@ export default function ProjectView() {
               </CardHeader>
             </Card>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-8 overflow-x-hidden">
               {Object.entries(tasksByProject).map(([projectId, projectTasks]) => {
                 const project = projects?.find(
                   (p) => p.id === parseInt(projectId)
@@ -134,7 +133,7 @@ export default function ProjectView() {
                         </CardDescription>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="overflow-x-auto">
                       <TaskList
                         tasks={projectTasks}
                         projects={projects}

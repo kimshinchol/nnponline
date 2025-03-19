@@ -53,17 +53,19 @@ export function Navigation() {
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Close button positioned at top right of menu */}
+        {/* Close button container positioned at top of menu */}
         {isMobileMenuOpen && (
-          <button
-            className="lg:hidden absolute top-4 right-4 p-2 rounded-md"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            <X className="h-6 w-6" />
-          </button>
+          <div className="lg:hidden absolute top-0 right-0 p-4 bg-sidebar border-b border-r rounded-bl-md">
+            <button
+              className="p-1 hover:bg-muted rounded-md"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         )}
 
-        <div className="flex items-center mb-8 pl-2">
+        <div className="flex items-center mb-8 pl-2 mt-14 lg:mt-0">
           <img src="/logo.png" alt="Logo" className="h-8" />
         </div>
 

@@ -25,7 +25,7 @@ export default function TeamView() {
   return (
     <div className="flex min-h-screen">
       <Navigation />
-      <main className="flex-1 p-8 ml-64">
+      <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
           <div className="h-8 mb-8"></div> {/* Spacer to maintain layout */}
 
@@ -43,7 +43,7 @@ export default function TeamView() {
                 <div className="mb-4">
                   <h2 className="text-xl font-semibold">{team} Team Tasks</h2>
                 </div>
-                {(
+                <div className="overflow-x-hidden">
                   <TaskList
                     tasks={teamQueries[index].data || []}
                     isLoading={teamQueries[index].isLoading}
@@ -51,7 +51,7 @@ export default function TeamView() {
                     showAuthor={true}
                     showActions={false}
                   />
-                )}
+                </div>
               </TabsContent>
             ))}
           </Tabs>
