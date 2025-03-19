@@ -1,16 +1,28 @@
 import { Plus } from "lucide-react";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
 import { InsertTask } from "@shared/schema";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export function QuickTaskFAB() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Show FAB if user is authenticated
+    if (user) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  }, [user]);
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
@@ -46,21 +58,26 @@ export function QuickTaskFAB() {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 100 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50"
-      >
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
-        >
-          <Plus className="h-6 w-6" />
-        </motion.button>
-      </motion.div>
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50"
+          >
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setIsOpen(true)}
+              className="h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+            >
+              <Plus className="h-6 w-6" />
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[425px]">

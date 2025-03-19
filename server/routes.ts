@@ -368,10 +368,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const allTasks = await storage.getAllTasks();
 
-      const tasks = allTasks.filter(task =>
-        teamUserIds.includes(task.userId) &&
-        isTaskFromToday(new Date(task.createdAt))
-      );
+      // Filter tasks that either:
+      // 1. Were created by team members today
+      // 2. Were assigned to team members (by admin or self) today
+      const tasks = allTasks.filter(task => {
+        const isTaskFromToday = isTaskFromToday(new Date(task.createdAt));
+        const isTeamMemberTask = teamUserIds.includes(task.userId);
+        return isTaskFromToday && isTeamMemberTask;
+      });
 
       const tasksWithUsernames = tasks.map(task => {
         const user = users.find(u => u.id === task.userId);
