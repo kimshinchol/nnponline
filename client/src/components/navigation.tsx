@@ -36,13 +36,15 @@ export function Navigation() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-background border"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-      >
-        {!isMobileMenuOpen && <Menu className="h-6 w-6" />}
-      </button>
+      {/* Mobile Menu Button - Only show when menu is closed */}
+      {!isMobileMenuOpen && (
+        <button
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-background border"
+          onClick={() => setIsMobileMenuOpen(true)}
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+      )}
 
       {/* Navigation Sidebar */}
       <nav
@@ -53,7 +55,7 @@ export function Navigation() {
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Close button container positioned at top left of menu */}
+        {/* Close button positioned at top left of menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden absolute top-4 left-4">
             <button
