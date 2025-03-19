@@ -294,6 +294,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add this endpoint after other task routes
+  app.get("/api/tasks/previous", ensureAuthenticated, async (req, res) => {
+    try {
+      const tasks = await storage.getUserTasks(req.user!.id);
+
+      // Get yesterday's date in KST
+      const kstOffset = 9 * 60; // KST is UTC+9
+      const nowKST = new Date(Date.now() + kstOffset * 60000);
+      const yesterdayKST = new Date(nowKST);
+      yesterdayKST.setDate(yesterdayKST.getDate() - 1);
+
+      // Filter tasks from yesterday
+      const yesterdayTasks = tasks.filter(task => {
+        const taskDate = new Date(task.createdAt);
+        const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
+
+        return (
+          taskKST.getFullYear() === yesterdayKST.getFullYear() &&
+          taskKST.getMonth() === yesterdayKST.getMonth() &&
+          taskKST.getDate() === yesterdayKST.getDate()
+        );
+      });
+
+      res.json(yesterdayTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   // Update team tasks endpoint
   app.get("/api/tasks/team/:team", ensureAuthenticated, async (req, res) => {
     try {
