@@ -20,7 +20,8 @@ export default function HomePage() {
       <Navigation />
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Welcome, {user?.username}!</h1>
+          <div className="h-8 mb-8"></div> {/* Spacer for mobile menu */}
+          <h1 className="text-2xl lg:text-3xl font-bold mb-8">Welcome, {user?.username}!</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card>
@@ -51,7 +52,7 @@ export default function HomePage() {
             </Card>
           </div>
 
-          {!user.isApproved && (
+          {!user?.isApproved && (
             <Card className="bg-yellow-50 border-yellow-200">
               <CardHeader>
                 <CardTitle className="text-yellow-800">Account Pending Approval</CardTitle>
