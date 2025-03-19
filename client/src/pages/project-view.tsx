@@ -14,12 +14,23 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Command, CommandInput } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertProjectSchema } from "@shared/schema";
 
 export default function ProjectView() {
   const { toast } = useToast();
-  const [projectName, setProjectName] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const form = useForm<InsertProject>({
+    resolver: zodResolver(insertProjectSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
@@ -50,20 +61,20 @@ export default function ProjectView() {
         title: "Success",
         description: "Project created successfully",
       });
-      setProjectName("");
+      setIsDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create project",
+        variant: "destructive",
+      });
     },
   });
 
-  const handleCreateProject = () => {
-    if (!projectName.trim()) {
-      toast({
-        title: "Error",
-        description: "Project name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    createProjectMutation.mutate({ name: projectName });
+  const onSubmit = (data: InsertProject) => {
+    createProjectMutation.mutate(data);
   };
 
   return (
@@ -71,9 +82,9 @@ export default function ProjectView() {
       <Navigation />
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto w-full">
-          <div className="h-8 mb-6"></div> {/* Spacer for mobile menu */}
-          <div className="flex justify-end mb-6"> {/* Changed from justify-start to justify-end */}
-            <Dialog>
+          <div className="h-8 mb-6"></div>
+          <div className="flex justify-end mb-6">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="text-sm">
                   <Plus className="h-4 w-4 mr-1" />
@@ -84,21 +95,30 @@ export default function ProjectView() {
                 <DialogHeader>
                   <DialogTitle>Create New Project</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <CommandInput
-                    placeholder="Enter project name..."
-                    value={projectName}
-                    onValueChange={setProjectName}
-                  />
-                  <Button
-                    onClick={handleCreateProject}
-                    disabled={createProjectMutation.isPending}
-                    size="sm"
-                    className="w-full"
-                  >
-                    {createProjectMutation.isPending ? "Creating..." : "Create Project"}
-                  </Button>
-                </div>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Project Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter project name..." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={createProjectMutation.isPending}
+                      className="w-full"
+                    >
+                      {createProjectMutation.isPending ? "Creating..." : "Create Project"}
+                    </Button>
+                  </form>
+                </Form>
               </DialogContent>
             </Dialog>
           </div>
