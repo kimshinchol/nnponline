@@ -67,7 +67,7 @@ export function QuickTaskFAB() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 100 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-8 right-8 z-50"
+            className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50"
           >
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -82,7 +82,7 @@ export function QuickTaskFAB() {
       </AnimatePresence>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Create New Task</DialogTitle>
           </DialogHeader>

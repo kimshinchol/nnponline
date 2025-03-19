@@ -121,10 +121,9 @@ export default function PersonalView() {
   return (
     <div className="flex min-h-screen">
       <Navigation />
-      <main className="flex-1 p-8 ml-64">
+      <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <div className="w-20"></div> {/* Spacer to maintain layout */}
+          <div className="flex justify-center lg:justify-end mb-8">
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
@@ -145,14 +144,16 @@ export default function PersonalView() {
             </Dialog>
           </div>
 
-          <TaskList
-            tasks={tasks || []}
-            onStatusChange={handleStatusChange}
-            onDelete={handleDeleteTask}
-            onEdit={handleEditTask}
-            projects={projects}
-            isLoading={tasksLoading}
-          />
+          <div className="overflow-x-auto">
+            <TaskList
+              tasks={tasks || []}
+              onStatusChange={handleStatusChange}
+              onDelete={handleDeleteTask}
+              onEdit={handleEditTask}
+              projects={projects}
+              isLoading={tasksLoading}
+            />
+          </div>
         </div>
       </main>
     </div>
