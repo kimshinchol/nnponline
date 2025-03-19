@@ -4,6 +4,7 @@ import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import passport from 'passport';
+import { pool } from './db'; // Assuming a pool object exists for database connection
 
 // Add function to create default admin user
 async function createDefaultAdminIfNeeded() {
@@ -40,8 +41,21 @@ function ensureAdmin(req: Request, res: Response, next: Function) {
   res.status(403).json({ message: "Forbidden. Admin access required." });
 }
 
-// Add login route before other routes
+// Add health check endpoint at the start of registerRoutes
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get("/health", async (req, res) => {
+    try {
+      // Test database connection
+      const client = await pool.connect();
+      client.release();
+      res.json({ status: "healthy", message: "Server is running and database is connected" });
+    } catch (err) {
+      console.error("Health check failed:", err);
+      res.status(503).json({ status: "unhealthy", message: "Database connection failed" });
+    }
+  });
+
   // Create default admin user before setting up routes
   await createDefaultAdminIfNeeded();
 
