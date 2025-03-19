@@ -85,6 +85,8 @@ export function TaskList({
       const newStatus = getNextStatus(currentStatus);
       if (newStatus === "완료") {
         setShowCelebration(true);
+        // Automatically hide celebration after animation completes
+        setTimeout(() => setShowCelebration(false), 2000);
       }
       onStatusChange(taskId, newStatus);
     }
