@@ -13,17 +13,29 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertProjectSchema } from "@shared/schema";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function ProjectView() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
 
   const form = useForm<InsertProject>({
     resolver: zodResolver(insertProjectSchema),
@@ -32,7 +44,7 @@ export default function ProjectView() {
     },
   });
 
-  const { data: projects } = useQuery<{ id: number; name: string }[]>({
+  const { data: projects, isLoading: projectsLoading } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
   });
 
@@ -73,6 +85,28 @@ export default function ProjectView() {
     },
   });
 
+  const deleteProjectMutation = useMutation({
+    mutationFn: async (projectId: number) => {
+      const res = await apiRequest("DELETE", `/api/projects/${projectId}`);
+      if (!res.ok) throw new Error("Failed to delete project");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+      setProjectToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete project",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: InsertProject) => {
     createProjectMutation.mutate(data);
   };
@@ -83,12 +117,13 @@ export default function ProjectView() {
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto w-full">
           <div className="h-8 mb-6"></div>
-          <div className="flex justify-end mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Projects</h2>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="text-sm">
                   <Plus className="h-4 w-4 mr-1" />
-                  New Project
+                  Edit Project
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
@@ -119,6 +154,59 @@ export default function ProjectView() {
                     </Button>
                   </form>
                 </Form>
+
+                {/* Project List */}
+                <div className="mt-8">
+                  <h3 className="text-sm font-medium mb-4">Existing Projects</h3>
+                  <div className="space-y-2">
+                    {projectsLoading ? (
+                      <p className="text-sm text-muted-foreground">Loading projects...</p>
+                    ) : projects?.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No projects found.</p>
+                    ) : (
+                      projects?.map((project) => (
+                        <div
+                          key={project.id}
+                          className="flex items-center justify-between p-2 rounded-lg border bg-card"
+                        >
+                          <span className="text-sm">{project.name}</span>
+                          <AlertDialog open={projectToDelete === project.id}>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => setProjectToDelete(project.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{project.name}"? This action cannot be undone.
+                                  Tasks associated with this project will be preserved in the history.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setProjectToDelete(null)}>
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteProjectMutation.mutate(project.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
