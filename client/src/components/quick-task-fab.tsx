@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TaskForm } from "./task-form";
 import { InsertTask } from "@shared/schema";
@@ -10,7 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 
 export function QuickTaskFAB() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
@@ -43,6 +48,8 @@ export function QuickTaskFAB() {
       });
     },
   });
+
+  if (!mounted) return null;
 
   return (
     <>
