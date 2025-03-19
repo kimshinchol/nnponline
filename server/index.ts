@@ -34,46 +34,58 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  try {
-    // Test database connection before starting server
-    await pool.connect();
-    console.log('Database connection successful');
+  let retries = 5;
+  while (retries > 0) {
+    try {
+      // Test database connection before starting server
+      await pool.connect();
+      console.log('Database connection successful');
 
-    const server = await registerRoutes(app);
+      const server = await registerRoutes(app);
 
-    // Enhanced error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      console.error('Server error:', err);
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      res.status(status).json({ message });
-    });
+      // Enhanced error handling middleware
+      app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+        console.error('Server error:', err);
+        const status = err.status || err.statusCode || 500;
+        const message = err.message || "Internal Server Error";
+        res.status(status).json({ message });
+      });
 
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
-      serveStatic(app);
-    }
+      if (app.get("env") === "development") {
+        await setupVite(app, server);
+      } else {
+        serveStatic(app);
+      }
 
-    const port = parseInt(process.env.PORT || "5000", 10);
-    server.listen(port, "0.0.0.0", () => {
-      log(`Server running on port ${port}`);
-    });
+      const port = parseInt(process.env.PORT || "5000", 10);
+      server.listen(port, "0.0.0.0", () => {
+        log(`Server running on port ${port}`);
+      });
 
-    // Graceful shutdown handling
-    process.on('SIGTERM', () => {
-      console.log('SIGTERM received. Starting graceful shutdown...');
-      server.close(() => {
-        console.log('Server closed. Shutting down pool...');
-        pool.end().then(() => {
-          console.log('Pool has ended. Process will now exit.');
-          process.exit(0);
+      // Graceful shutdown handling
+      process.on('SIGTERM', () => {
+        console.log('SIGTERM received. Starting graceful shutdown...');
+        server.close(() => {
+          console.log('Server closed. Shutting down pool...');
+          pool.end().then(() => {
+            console.log('Pool has ended. Process will now exit.');
+            process.exit(0);
+          });
         });
       });
-    });
 
-  } catch (err) {
-    console.error("Failed to start server:", err);
-    process.exit(1);
+      // Successfully started server, break the retry loop
+      break;
+
+    } catch (err) {
+      console.error("Server startup error:", err);
+      retries--;
+      if (retries === 0) {
+        console.error("Failed to start server after multiple attempts:", err);
+        process.exit(1);
+      }
+      console.log(`Retrying server startup in 5 seconds... (${retries} attempts remaining)`);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
   }
 })();
