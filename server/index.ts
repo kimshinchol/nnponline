@@ -42,10 +42,31 @@ app.use((req, res, next) => {
     try {
       log("Starting server initialization...");
 
-      // Test database connection
+      // Test database connection with retry logic
       log("Testing database connection...");
-      await pool.connect();
-      log('Database connection successful');
+      let connected = false;
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      while (!connected && attempts < maxAttempts) {
+        try {
+          const client = await pool.connect();
+          client.release();
+          connected = true;
+          log('Database connection successful');
+        } catch (err) {
+          attempts++;
+          log(`Database connection attempt ${attempts} failed: ${err}`);
+          if (attempts < maxAttempts) {
+            log('Retrying in 5 seconds...');
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          }
+        }
+      }
+
+      if (!connected) {
+        throw new Error('Failed to establish database connection after multiple attempts');
+      }
 
       log("Registering routes...");
       server = await registerRoutes(app);

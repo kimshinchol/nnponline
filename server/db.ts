@@ -16,11 +16,15 @@ const connectionString = process.env.DATABASE_URL;
 export const pool = new Pool({ 
   connectionString,
   ssl: true,
-  connectionTimeoutMillis: 30000, // Increased timeout
-  idleTimeoutMillis: 30000, // Increased idle timeout
-  max: 20, // Maximum pool size
-  keepAlive: true, // Enable keepalive
-  keepAliveInitialDelayMillis: 10000 // Keepalive delay
+  connectionTimeoutMillis: 60000, 
+  idleTimeoutMillis: 60000, 
+  max: 50, 
+  min: 5, 
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 5000, 
+  acquireTimeoutMillis: 30000, 
+  retryIntervalMillis: 1000, 
+  maxRetries: 5 
 });
 
 // Add comprehensive error handling for the pool
@@ -35,6 +39,15 @@ pool.on('error', (err) => {
 
 pool.on('connect', () => {
   console.log('Database connection established');
+});
+
+// Add connection acquisition error handling
+pool.on('acquire', () => {
+  console.log('Client acquired from pool');
+});
+
+pool.on('remove', () => {
+  console.log('Client removed from pool');
 });
 
 export const db = drizzle({ client: pool, schema });
