@@ -55,7 +55,7 @@ export function Navigation() {
       >
         {/* Close button container positioned at top of menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-0 right-0 p-4 bg-sidebar border-b border-r rounded-bl-md">
+          <div className="lg:hidden absolute top-0 right-0 p-4">
             <button
               className="p-1 hover:bg-muted rounded-md"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -71,8 +71,8 @@ export function Navigation() {
 
         <div className="flex flex-col space-y-2">
           <Link href="/">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className={`w-full justify-start ${isActive("/") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
               <HomeIcon className="mr-2 h-4 w-4" />
@@ -80,8 +80,8 @@ export function Navigation() {
             </Button>
           </Link>
           <Link href="/personal">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className={`w-full justify-start ${isActive("/personal") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
               <UserIcon className="mr-2 h-4 w-4" />
@@ -89,8 +89,8 @@ export function Navigation() {
             </Button>
           </Link>
           <Link href="/team">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className={`w-full justify-start ${isActive("/team") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
               <UsersIcon className="mr-2 h-4 w-4" />
@@ -98,8 +98,8 @@ export function Navigation() {
             </Button>
           </Link>
           <Link href="/project">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className={`w-full justify-start ${isActive("/project") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
               <FolderIcon className="mr-2 h-4 w-4" />
@@ -107,8 +107,8 @@ export function Navigation() {
             </Button>
           </Link>
           <Link href="/scheduler">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className={`w-full justify-start ${isActive("/scheduler") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
@@ -118,8 +118,8 @@ export function Navigation() {
           {/* Show Admin link only for admin users */}
           {user?.isAdmin && (
             <Link href="/admin">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className={`w-full justify-start ${isActive("/admin") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
               >
                 <ShieldIcon className="mr-2 h-4 w-4" />
@@ -137,9 +137,9 @@ export function Navigation() {
               <p className="text-xs text-primary mt-1">Administrator</p>
             )}
           </div>
-          <Button 
-            variant="outline" 
-            className="w-full justify-start" 
+          <Button
+            variant="outline"
+            className="w-full justify-start"
             onClick={handleLogout}
             disabled={logoutMutation.isPending}
           >
