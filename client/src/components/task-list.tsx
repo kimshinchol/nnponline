@@ -11,7 +11,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { TaskForm } from "./task-form";
 import { Pencil, Trash2 } from "lucide-react";
 import { Celebration } from "@/components/ui/celebration";
@@ -43,7 +53,6 @@ export function TaskList({
   const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTaskId, setDeleteTaskId] = useState<number | null>(null);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -100,19 +109,6 @@ export function TaskList({
     }
   };
 
-  const handleDeleteClick = (taskId: number) => {
-    setDeleteTaskId(taskId);
-    setShowDeleteAlert(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deleteTaskId && onDelete) {
-      onDelete(deleteTaskId);
-      setShowDeleteAlert(false);
-      setDeleteTaskId(null);
-    }
-  };
-
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
@@ -125,17 +121,6 @@ export function TaskList({
           onComplete={() => setShowCelebration(false)} 
         />
       )}
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>NO</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>YES</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
       <Table>
         <TableHeader>
           <TableRow>
@@ -188,13 +173,27 @@ export function TaskList({
                     </Dialog>
                   )}
                   {onDelete && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteClick(task.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>NO</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(task.id)}>
+                            YES
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </TableCell>
               )}
