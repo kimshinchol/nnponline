@@ -297,6 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add this endpoint after other task routes
   app.get("/api/tasks/previous", ensureAuthenticated, async (req, res) => {
     try {
+      console.log("Fetching previous tasks for user:", req.user!.id);
       const tasks = await storage.getUserTasks(req.user!.id);
 
       // Get yesterday's date in KST
@@ -304,21 +305,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const nowKST = new Date(Date.now() + kstOffset * 60000);
       const yesterdayKST = new Date(nowKST);
       yesterdayKST.setDate(yesterdayKST.getDate() - 1);
+      yesterdayKST.setHours(0, 0, 0, 0);
+
+      const todayKST = new Date(nowKST);
+      todayKST.setHours(0, 0, 0, 0);
+
+      console.log("Yesterday KST:", yesterdayKST.toISOString());
+      console.log("Today KST:", todayKST.toISOString());
 
       // Filter tasks from yesterday
       const yesterdayTasks = tasks.filter(task => {
         const taskDate = new Date(task.createdAt);
         const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
+        taskKST.setHours(0, 0, 0, 0);
 
-        return (
-          taskKST.getFullYear() === yesterdayKST.getFullYear() &&
-          taskKST.getMonth() === yesterdayKST.getMonth() &&
-          taskKST.getDate() === yesterdayKST.getDate()
-        );
+        console.log("Task date KST:", taskKST.toISOString(), "for task:", task.title);
+
+        const isYesterday = taskKST.getTime() === yesterdayKST.getTime();
+        return isYesterday;
       });
 
+      console.log("Filtered yesterday's tasks:", yesterdayTasks.length);
       res.json(yesterdayTasks);
     } catch (err) {
+      console.error("Error fetching previous tasks:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });

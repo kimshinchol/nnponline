@@ -50,12 +50,13 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
   });
 
   // Fetch previous day's tasks
-  const { data: previousTasks } = useQuery<Task[]>({
+  const { data: previousTasks, isLoading: loadingPreviousTasks } = useQuery<Task[]>({
     queryKey: ["/api/tasks/previous"],
     enabled: showPreviousTasks,
   });
 
   const handleCopyTask = (task: Task) => {
+    console.log("Copying task:", task);
     form.setValue("title", task.title);
     form.setValue("description", task.description || "");
     form.setValue("projectId", task.projectId);
@@ -75,26 +76,29 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
       <Dialog open={showPreviousTasks} onOpenChange={setShowPreviousTasks}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Previous Tasks</DialogTitle>
+            <DialogTitle>Yesterday's Tasks</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            {previousTasks?.map((task) => (
-              <Button
-                key={task.id}
-                variant="outline"
-                className="w-full justify-start text-left"
-                onClick={() => handleCopyTask(task)}
-              >
-                <div>
-                  <div className="font-medium">{task.title}</div>
-                  {task.description && (
-                    <div className="text-sm text-muted-foreground">{task.description}</div>
-                  )}
-                </div>
-              </Button>
-            ))}
-            {!previousTasks?.length && (
-              <p className="text-sm text-muted-foreground">No previous tasks found.</p>
+            {loadingPreviousTasks ? (
+              <p className="text-sm text-muted-foreground">Loading previous tasks...</p>
+            ) : previousTasks?.length ? (
+              previousTasks.map((task) => (
+                <Button
+                  key={task.id}
+                  variant="outline"
+                  className="w-full justify-start text-left"
+                  onClick={() => handleCopyTask(task)}
+                >
+                  <div>
+                    <div className="font-medium">{task.title}</div>
+                    {task.description && (
+                      <div className="text-sm text-muted-foreground">{task.description}</div>
+                    )}
+                  </div>
+                </Button>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No tasks found from yesterday.</p>
             )}
           </div>
         </DialogContent>
@@ -123,10 +127,10 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea 
+                  <Textarea
                     placeholder="Task description"
                     {...field}
-                    value={field.value || ''}
+                    value={field.value || ""}
                   />
                 </FormControl>
                 <FormMessage />
