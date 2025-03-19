@@ -44,14 +44,17 @@ export function setupAuth(app: Express) {
       try {
         const user = await storage.getUserByUsername(username);
         if (!user) {
+          console.log("User not found:", username);
           return done(null, false, { message: "Invalid username or password" });
         }
 
         const isValid = await comparePasswords(password, user.password);
         if (!isValid) {
+          console.log("Invalid password for user:", username);
           return done(null, false, { message: "Invalid username or password" });
         }
 
+        console.log("Login successful for user:", username);
         return done(null, user);
       } catch (err) {
         console.error("Login error:", err);
@@ -61,15 +64,24 @@ export function setupAuth(app: Express) {
   );
 
   passport.serializeUser((user, done) => {
-    done(null, user.id);
+    try {
+      console.log("Serializing user:", user.id);
+      done(null, user.id);
+    } catch (err) {
+      console.error("Serialization error:", err);
+      done(err, null);
+    }
   });
 
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log("Deserializing user:", id);
       const user = await storage.getUser(id);
       if (!user) {
-        return done(new Error('User not found'), null);
+        console.log("User not found during deserialization:", id);
+        return done(null, false);
       }
+      console.log("User deserialized successfully:", user.id);
       done(null, user);
     } catch (err) {
       console.error("Deserialization error:", err);
@@ -78,7 +90,11 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.isAuthenticated()) {
+      console.log("Unauthenticated request to /api/user");
+      return res.sendStatus(401);
+    }
+    console.log("Authenticated user request:", req.user?.id);
     res.json(req.user);
   });
 }

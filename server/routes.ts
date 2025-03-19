@@ -1,9 +1,28 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import passport from 'passport';
+
+// Add function to create default admin user
+async function createDefaultAdminIfNeeded() {
+  try {
+    const adminUser = await storage.getUserByUsername("admin");
+    if (!adminUser) {
+      const hashedPassword = await hashPassword("Admin123@");
+      await storage.createUser({
+        username: "admin",
+        password: hashedPassword,
+        isAdmin: true,
+        isApproved: true
+      });
+      console.log("Created default admin user");
+    }
+  } catch (err) {
+    console.error("Error creating default admin:", err);
+  }
+}
 
 function ensureAuthenticated(req: Request, res: Response, next: Function) {
   if (req.isAuthenticated()) {
@@ -21,6 +40,9 @@ function ensureAdmin(req: Request, res: Response, next: Function) {
 
 // Add login route before other routes
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Create default admin user before setting up routes
+  await createDefaultAdminIfNeeded();
+
   setupAuth(app);
 
   app.post("/api/login", (req, res, next) => {
