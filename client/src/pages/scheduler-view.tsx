@@ -43,6 +43,16 @@ export default function SchedulerView() {
     return acc;
   }, {} as Record<string | number, Task[]>);
 
+  // Get list of project IDs that have tasks for the selected date
+  const projectIdsWithTasks = Object.keys(tasksByProject || {}).map(id => 
+    id === "unassigned" ? null : parseInt(id)
+  );
+
+  // Filter projects to only show those with tasks
+  const projectsWithTasks = projects?.filter(project => 
+    projectIdsWithTasks.includes(project.id)
+  );
+
   return (
     <div className="flex min-h-screen">
       <Navigation />
@@ -51,23 +61,25 @@ export default function SchedulerView() {
           <h1 className="text-3xl font-bold mb-8">Task History</h1>
 
           <div className="space-y-8">
-            {/* Calendar Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Select Date (KST)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => setSelectedDate(date || new Date())}
-                  className="rounded-md border w-full"
-                />
-              </CardContent>
-            </Card>
+            {/* Calendar Section - Centered */}
+            <div className="flex justify-center">
+              <Card className="w-full max-w-sm">
+                <CardHeader>
+                  <CardTitle className="text-center">Select Date (KST)</CardTitle>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => setSelectedDate(date || new Date())}
+                    className="rounded-md border"
+                  />
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Tasks By Project Section */}
-            {projects?.map((project) => (
+            {projectsWithTasks?.map((project) => (
               <Card key={project.id}>
                 <CardHeader>
                   <CardTitle>{project.name}</CardTitle>
