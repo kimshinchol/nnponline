@@ -10,6 +10,8 @@ export const users = pgTable("users", {
   team: text("team").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
   isApproved: boolean("is_approved").notNull().default(false),
+  isDeleted: boolean("is_deleted").notNull().default(false),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const projects = pgTable("projects", {
@@ -17,6 +19,8 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   isActive: boolean("is_active").notNull().default(true),
+  isDeleted: boolean("is_deleted").notNull().default(false),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const tasks = pgTable("tasks", {
@@ -28,6 +32,8 @@ export const tasks = pgTable("tasks", {
   projectId: integer("project_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   dueDate: timestamp("due_date"),
+  username: text("username"),
+  projectName: text("project_name"),
 });
 
 // Update session table with correct types

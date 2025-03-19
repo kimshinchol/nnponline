@@ -1,7 +1,7 @@
 import { InsertUser, User, Task, Project, InsertTask, InsertProject } from "@shared/schema";
 import { users, tasks, projects } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, isNull } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -14,6 +14,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   approveUser(id: number): Promise<User>;
   deleteUser(id: number): Promise<void>;
+  updateUser(id: number, updates: Partial<User>): Promise<User>;
 
   createTask(task: InsertTask): Promise<Task>;
   getTask(id: number): Promise<Task | undefined>;
@@ -26,21 +27,18 @@ export interface IStorage {
 
   createProject(project: InsertProject): Promise<Project>;
   getProjects(): Promise<Project[]>;
-
-  // New backup and archive methods
-  createBackup(): Promise<BackupData>;
-  restoreFromBackup(backup: BackupData): Promise<void>;
-  archiveTasks(filters: ArchiveFilters): Promise<Task[]>;
-  getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]>;
+  deleteProject(id: number): Promise<void>;
 
   sessionStore: session.Store;
   getUsers(): Promise<Map<number, User>>;
   getAllTasks(): Promise<Task[]>;
-  updateUser(id: number, updates: Partial<User>): Promise<User>;
-  deleteProject(id: number): Promise<void>;
+
+  createBackup(): Promise<BackupData>;
+  restoreFromBackup(backup: BackupData): Promise<void>;
+  archiveTasks(filters: ArchiveFilters): Promise<Task[]>;
+  getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]>;
 }
 
-// Define backup data structure
 interface BackupData {
   users: User[];
   tasks: Task[];
@@ -48,7 +46,6 @@ interface BackupData {
   timestamp: Date;
 }
 
-// Define archive filters
 interface ArchiveFilters {
   before?: Date;
   status?: string;
@@ -66,12 +63,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(sql`${users.id} = ${id} AND (${users.isDeleted} = false OR ${users.isDeleted} IS NULL)`);
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(sql`${users.username} = ${username} AND (${users.isDeleted} = false OR ${users.isDeleted} IS NULL)`);
     return user;
   }
 
@@ -90,16 +93,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<void> {
-    await db.delete(users).where(eq(users.id, id));
+    // Soft delete user
+    await db
+      .update(users)
+      .set({ 
+        isDeleted: true,
+        deletedAt: new Date()
+      })
+      .where(eq(users.id, id));
+
+    // Update username in tasks
+    const user = await this.getUser(id);
+    if (user) {
+      await db
+        .update(tasks)
+        .set({ username: user.username })
+        .where(eq(tasks.userId, id));
+    }
   }
 
   async getUsers(): Promise<Map<number, User>> {
-    const allUsers = await db.select().from(users);
+    const allUsers = await db
+      .select()
+      .from(users)
+      .where(sql`${users.isDeleted} = false OR ${users.isDeleted} IS NULL`);
     return new Map(allUsers.map(user => [user.id, user]));
   }
 
   async createTask(insertTask: InsertTask): Promise<Task> {
-    const [task] = await db.insert(tasks).values(insertTask).returning();
+    // Get user and project info before creating task
+    const [user] = await db.select().from(users).where(eq(users.id, insertTask.userId));
+    const [project] = insertTask.projectId ? 
+      await db.select().from(projects).where(eq(projects.id, insertTask.projectId)) : 
+      [null];
+
+    const taskData = {
+      ...insertTask,
+      username: user?.username,
+      projectName: project?.name
+    };
+
+    const [task] = await db.insert(tasks).values(taskData).returning();
     return task;
   }
 
@@ -113,7 +147,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTeamTasks(team: string): Promise<Task[]> {
-    const teamUsers = await db.select().from(users).where(eq(users.team, team));
+    const teamUsers = await db
+      .select()
+      .from(users)
+      .where(sql`${users.team} = ${team} AND (${users.isDeleted} = false OR ${users.isDeleted} IS NULL)`);
+
     if (teamUsers.length === 0) return [];
 
     const userIds = teamUsers.map(user => user.id);
@@ -155,14 +193,35 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(projects)
-      .where(eq(projects.isActive, true));
+      .where(sql`${projects.isDeleted} = false OR ${projects.isDeleted} IS NULL`);
   }
 
   async getAllTasks(): Promise<Task[]> {
     return await db.select().from(tasks);
   }
 
-  // Backup and restore functionality
+  async deleteProject(id: number): Promise<void> {
+    // Soft delete project
+    await db
+      .update(projects)
+      .set({ 
+        isDeleted: true,
+        deletedAt: new Date(),
+        isActive: false
+      })
+      .where(eq(projects.id, id));
+
+    // Update project name in tasks
+    const project = await db.select().from(projects).where(eq(projects.id, id));
+    if (project.length > 0) {
+      await db
+        .update(tasks)
+        .set({ projectName: project[0].name })
+        .where(eq(tasks.projectId, id));
+    }
+  }
+
+  // Keep existing backup and archive methods
   async createBackup(): Promise<BackupData> {
     const allUsers = await db.select().from(users);
     const allTasks = await db.select().from(tasks);
@@ -186,7 +245,6 @@ export class DatabaseStorage implements IStorage {
     if (backup.projects.length) await db.insert(projects).values(backup.projects);
   }
 
-  // Archive functionality
   async archiveTasks(filters: ArchiveFilters): Promise<Task[]> {
     let query = db.select().from(tasks);
 
@@ -201,15 +259,12 @@ export class DatabaseStorage implements IStorage {
     }
 
     const tasksToArchive = await query;
-
-    // For now, we'll just delete the tasks as archiving would require a new table
     await db.delete(tasks).where(sql`${tasks.id} = ANY(${tasksToArchive.map(t => t.id)})`);
 
     return tasksToArchive;
   }
 
   async getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]> {
-    // Since we don't have a separate archive table yet, return empty array
     return [];
   }
 
@@ -220,14 +275,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
-  }
-
-  async deleteProject(id: number): Promise<void> {
-    // Instead of deleting, just mark as inactive
-    await db
-      .update(projects)
-      .set({ isActive: false })
-      .where(eq(projects.id, id));
   }
 }
 
