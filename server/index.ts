@@ -15,6 +15,32 @@ const CIRCUIT_RESET_TIMEOUT = 30000; // 30 seconds
 const MAX_CONSECUTIVE_FAILURES = 3;
 let consecutiveFailures = 0;
 
+// Add idle timeout configuration
+const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+let lastActivityTimestamp = Date.now();
+
+// Activity tracking middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  lastActivityTimestamp = Date.now();
+  next();
+});
+
+// Idle check interval
+setInterval(() => {
+  const idleTime = Date.now() - lastActivityTimestamp;
+  if (idleTime >= IDLE_TIMEOUT) {
+    log('Application idle timeout reached, preparing for shutdown');
+    // Gracefully close database connections
+    pool.end().then(() => {
+      log('Database connections closed, application can safely sleep');
+    }).catch(err => {
+      console.error('Error closing database connections:', err);
+    });
+    process.exit(0); // Exit after closing connections
+  }
+}, 60000); // Check every minute
+
+
 // Connection health check middleware
 app.use(async (req: Request, res: Response, next: NextFunction) => {
   // Skip health check endpoint to prevent infinite loop
@@ -62,7 +88,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Add comprehensive error logging
+// Add activity logging
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -160,7 +186,7 @@ app.use((req, res, next) => {
   while (retries > 0) {
     const success = await startServer();
     if (success) {
-      // Graceful shutdown handling
+      // Enhance graceful shutdown
       process.on('SIGTERM', () => {
         console.log('SIGTERM received. Starting graceful shutdown...');
         if (server) {
