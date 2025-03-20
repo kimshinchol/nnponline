@@ -16,7 +16,7 @@ const MAX_CONSECUTIVE_FAILURES = 3;
 let consecutiveFailures = 0;
 
 // Add idle timeout configuration
-const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 let lastActivityTimestamp = Date.now();
 
 // Activity tracking middleware
