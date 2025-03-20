@@ -506,6 +506,16 @@ function isTaskFromToday(taskDate: Date): boolean {
     }
   });
 
+  app.patch("/api/projects/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.updateProject(projectId, req.body);
+      res.json(project);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   app.get("/api/backup", ensureAdmin, async (req, res) => {
     try {
       const backup = await storage.createBackup();
