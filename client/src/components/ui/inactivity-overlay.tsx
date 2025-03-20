@@ -17,19 +17,25 @@ export function InactivityOverlay({
 
     const resetTimer = () => {
       if (inactivityTimer) clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(() => setIsInactive(true), timeout);
+      inactivityTimer = setTimeout(() => {
+        console.log('Inactivity timeout reached, showing overlay');
+        setIsInactive(true);
+      }, timeout);
+      console.log('Inactivity timer reset');
     };
 
     // Event listeners for user activity
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
 
     const handleActivity = () => {
+      console.log('Activity detected');
       if (!isInactive) {
         resetTimer();
       }
     };
 
     // Initial timer setup
+    console.log('Setting up initial inactivity timer');
     resetTimer();
 
     // Add event listeners
@@ -39,6 +45,7 @@ export function InactivityOverlay({
 
     return () => {
       // Cleanup
+      console.log('Cleaning up inactivity timer');
       if (inactivityTimer) clearTimeout(inactivityTimer);
       events.forEach(event => {
         document.removeEventListener(event, handleActivity);
@@ -58,6 +65,7 @@ export function InactivityOverlay({
         </p>
         <Button 
           onClick={() => {
+            console.log('Reconnect clicked');
             setIsInactive(false);
             onReconnect();
           }}

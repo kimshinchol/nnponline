@@ -53,12 +53,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
-        <InactivityOverlay 
-          timeout={5 * 60 * 1000} // 5 minutes
-          onReconnect={handleReconnect}
-        />
+        <div className="relative min-h-screen">
+          <Router />
+          <Toaster />
+          <InactivityOverlay 
+            timeout={5 * 60 * 1000} // 5 minutes
+            onReconnect={handleReconnect}
+          />
+        </div>
       </AuthProvider>
     </QueryClientProvider>
   );
