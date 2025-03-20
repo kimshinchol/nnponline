@@ -58,11 +58,7 @@ export function InactivityOverlay({
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-background p-6 rounded-lg shadow-lg text-center">
-        <h2 className="text-xl font-semibold mb-4">세션 비활성화 / Session Inactive</h2>
-        <p className="mb-4 text-muted-foreground">
-          5분 동안 활동이 없었습니다.<br />
-          Your session has been inactive for 5 minutes.
-        </p>
+        <h2 className="text-3xl font-semibold mb-4">Zzz...</h2>
         <Button 
           onClick={() => {
             console.log('Reconnect clicked');
@@ -71,7 +67,7 @@ export function InactivityOverlay({
           }}
           className="w-full"
         >
-          재연결 / Reconnect
+          Reconnect
         </Button>
       </div>
     </div>
