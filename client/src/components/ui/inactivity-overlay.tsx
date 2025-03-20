@@ -11,32 +11,32 @@ export function InactivityOverlay({
   onReconnect 
 }: InactivityOverlayProps) {
   const [isInactive, setIsInactive] = useState(false);
-  
+
   useEffect(() => {
     let inactivityTimer: NodeJS.Timeout;
-    
+
     const resetTimer = () => {
       if (inactivityTimer) clearTimeout(inactivityTimer);
       inactivityTimer = setTimeout(() => setIsInactive(true), timeout);
     };
-    
+
     // Event listeners for user activity
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-    
+
     const handleActivity = () => {
       if (!isInactive) {
         resetTimer();
       }
     };
-    
+
     // Initial timer setup
     resetTimer();
-    
+
     // Add event listeners
     events.forEach(event => {
       document.addEventListener(event, handleActivity);
     });
-    
+
     return () => {
       // Cleanup
       if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -45,21 +45,25 @@ export function InactivityOverlay({
       });
     };
   }, [timeout, isInactive]);
-  
+
   if (!isInactive) return null;
-  
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-background p-6 rounded-lg shadow-lg text-center">
-        <h2 className="text-xl font-semibold mb-4">Session Inactive</h2>
-        <p className="mb-4 text-muted-foreground">Your session has been inactive for 5 minutes.</p>
+        <h2 className="text-xl font-semibold mb-4">세션 비활성화 / Session Inactive</h2>
+        <p className="mb-4 text-muted-foreground">
+          5분 동안 활동이 없었습니다.<br />
+          Your session has been inactive for 5 minutes.
+        </p>
         <Button 
           onClick={() => {
             setIsInactive(false);
             onReconnect();
           }}
+          className="w-full"
         >
-          Reconnect
+          재연결 / Reconnect
         </Button>
       </div>
     </div>
