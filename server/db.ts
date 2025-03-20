@@ -18,11 +18,10 @@ export const pool = new Pool({
   ssl: true,
   connectionTimeoutMillis: 60000, 
   idleTimeoutMillis: 60000, 
-  max: 10, // Reduced from 50 to minimize idle connections
-  min: 2,  // Reduced from 5 to minimize idle connections
+  max: 10, 
+  min: 2,  
   keepAlive: true,
   keepAliveInitialDelayMillis: 5000, 
-  acquireTimeoutMillis: 30000, 
   retryIntervalMillis: 1000, 
   maxRetries: 5 
 });

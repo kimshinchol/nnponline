@@ -16,30 +16,48 @@ const MAX_CONSECUTIVE_FAILURES = 3;
 let consecutiveFailures = 0;
 
 // Add idle timeout configuration
-const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 let lastActivityTimestamp = Date.now();
+let isSleeping = false;
 
 // Activity tracking middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
   lastActivityTimestamp = Date.now();
-  next();
+
+  // If application was sleeping, reconnect to database
+  if (isSleeping) {
+    log('Waking up from sleep mode...');
+    pool.connect().then(client => {
+      client.release();
+      isSleeping = false;
+      log('Successfully reconnected to database');
+      next();
+    }).catch(err => {
+      console.error('Error reconnecting to database:', err);
+      res.status(503).json({ 
+        message: "Service is starting up, please try again in a few seconds",
+        retryAfter: 5
+      });
+    });
+  } else {
+    next();
+  }
 });
 
 // Idle check interval
 setInterval(() => {
   const idleTime = Date.now() - lastActivityTimestamp;
-  if (idleTime >= IDLE_TIMEOUT) {
-    log('Application idle timeout reached, preparing for shutdown');
-    // Gracefully close database connections
+  if (idleTime >= IDLE_TIMEOUT && !isSleeping) {
+    log('Application idle timeout reached, entering sleep mode');
+    // Release all connections but keep the pool alive
     pool.end().then(() => {
-      log('Database connections closed, application can safely sleep');
+      isSleeping = true;
+      log('Database connections released, application in sleep mode');
     }).catch(err => {
-      console.error('Error closing database connections:', err);
+      console.error('Error releasing database connections:', err);
     });
-    process.exit(0); // Exit after closing connections
   }
 }, 60000); // Check every minute
-
 
 // Connection health check middleware
 app.use(async (req: Request, res: Response, next: NextFunction) => {
