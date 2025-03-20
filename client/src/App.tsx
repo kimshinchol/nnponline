@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
+import { InactivityOverlay } from "@/components/ui/inactivity-overlay";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import WebAdminAuthPage from "@/pages/web-admin-auth";
@@ -44,11 +45,20 @@ function Router() {
 }
 
 function App() {
+  const handleReconnect = () => {
+    // Force refetch all queries
+    queryClient.refetchQueries();
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router />
         <Toaster />
+        <InactivityOverlay 
+          timeout={5 * 60 * 1000} // 5 minutes
+          onReconnect={handleReconnect}
+        />
       </AuthProvider>
     </QueryClientProvider>
   );
