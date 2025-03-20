@@ -28,6 +28,7 @@ export interface IStorage {
   createProject(project: InsertProject): Promise<Project>;
   getProjects(): Promise<Project[]>;
   deleteProject(id: number): Promise<void>;
+  updateProject(id: number, updates: Partial<Project>): Promise<Project>;
 
   sessionStore: session.Store;
   getUsers(): Promise<Map<number, User>>;
@@ -96,7 +97,7 @@ export class DatabaseStorage implements IStorage {
     // Soft delete user
     await db
       .update(users)
-      .set({ 
+      .set({
         isDeleted: true,
         deletedAt: new Date()
       })
@@ -123,8 +124,8 @@ export class DatabaseStorage implements IStorage {
   async createTask(insertTask: InsertTask): Promise<Task> {
     // Get user and project info before creating task
     const [user] = await db.select().from(users).where(eq(users.id, insertTask.userId));
-    const [project] = insertTask.projectId ? 
-      await db.select().from(projects).where(eq(projects.id, insertTask.projectId)) : 
+    const [project] = insertTask.projectId ?
+      await db.select().from(projects).where(eq(projects.id, insertTask.projectId)) :
       [null];
 
     const taskData = {
@@ -204,7 +205,7 @@ export class DatabaseStorage implements IStorage {
     // Soft delete project
     await db
       .update(projects)
-      .set({ 
+      .set({
         isDeleted: true,
         deletedAt: new Date(),
         isActive: false
@@ -221,7 +222,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Keep existing backup and archive methods
+  async updateProject(id: number, updates: Partial<Project>): Promise<Project> {
+    // Update the project
+    const [project] = await db
+      .update(projects)
+      .set(updates)
+      .where(eq(projects.id, id))
+      .returning();
+
+    // If name was updated, update project name in tasks
+    if (updates.name) {
+      await db
+        .update(tasks)
+        .set({ projectName: updates.name })
+        .where(eq(tasks.projectId, id));
+    }
+
+    return project;
+  }
+
+
   async createBackup(): Promise<BackupData> {
     const allUsers = await db.select().from(users);
     const allTasks = await db.select().from(tasks);
