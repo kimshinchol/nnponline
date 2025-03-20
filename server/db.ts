@@ -13,7 +13,8 @@ if (!process.env.DATABASE_URL) {
 
 const connectionString = process.env.DATABASE_URL;
 
-export const pool = new Pool({ 
+// Create a new pool with the given configuration
+const createPool = () => new Pool({ 
   connectionString,
   ssl: true,
   connectionTimeoutMillis: 60000, 
@@ -26,12 +27,15 @@ export const pool = new Pool({
   maxRetries: 5 
 });
 
+export let pool = createPool();
+
 // Add comprehensive error handling for the pool
 pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
   // Attempt to reconnect rather than exit
   setTimeout(() => {
     console.log('Attempting to reconnect...');
+    pool = createPool();
     pool.connect().catch(console.error);
   }, 5000);
 });
@@ -48,5 +52,10 @@ pool.on('acquire', () => {
 pool.on('remove', () => {
   console.log('Client removed from pool');
 });
+
+export const recreatePool = () => {
+  pool = createPool();
+  return pool;
+};
 
 export const db = drizzle({ client: pool, schema });

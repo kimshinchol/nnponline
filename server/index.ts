@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { pool } from "./db";
+import { pool, recreatePool } from "./db";
 import { Server } from "http";
 
 const app = express();
@@ -27,7 +27,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   // If application was sleeping, reconnect to database
   if (isSleeping) {
     log('Waking up from sleep mode...');
-    pool.connect().then(client => {
+    // Recreate the pool and attempt to connect
+    const newPool = recreatePool();
+    newPool.connect().then(client => {
       client.release();
       isSleeping = false;
       log('Successfully reconnected to database');
