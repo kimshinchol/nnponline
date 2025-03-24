@@ -7,7 +7,6 @@ import passport from 'passport';
 import { pool } from './db'; // Assuming a pool object exists for database connection
 import { queryClient } from './queryClient'; // Import queryClient
 
-
 // Add function to create default admin user
 async function createDefaultAdminIfNeeded() {
   try {
@@ -289,8 +288,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const allTasks = await storage.getUserTasks(req.user!.id);
 
-      // Filter out archived tasks
-      const activeTasks = allTasks.filter(task => !task.isArchived);
+      // Filter out archived tasks and co-work tasks
+      const activeTasks = allTasks.filter(task => 
+        !task.isArchived && 
+        !task.isCoWork // Exclude co-work tasks from regular task view
+      );
 
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
