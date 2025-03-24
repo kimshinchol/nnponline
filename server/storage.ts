@@ -274,7 +274,11 @@ export class DatabaseStorage implements IStorage {
     }
 
     const tasksToArchive = await query;
-    await db.delete(tasks).where(sql`${tasks.id} = ANY(${tasksToArchive.map(t => t.id)})`);
+
+    if (tasksToArchive.length > 0) {
+      const taskIds = tasksToArchive.map(t => t.id);
+      await db.delete(tasks).where(sql`${tasks.id} = ANY(${taskIds}::int[])`);
+    }
 
     return tasksToArchive;
   }
