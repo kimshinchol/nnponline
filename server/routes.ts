@@ -313,17 +313,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-function isTaskFromToday(taskDate: Date): boolean {
-  const kstOffset = 9 * 60; 
-  const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
-  const nowKST = new Date(Date.now() + kstOffset * 60000);
+  function isTaskFromToday(taskDate: Date): boolean {
+    const kstOffset = 9 * 60; 
+    const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
+    const nowKST = new Date(Date.now() + kstOffset * 60000);
 
-  return (
-    taskKST.getFullYear() === nowKST.getFullYear() &&
-    taskKST.getMonth() === nowKST.getMonth() &&
-    taskKST.getDate() === nowKST.getDate()
-  );
-}
+    return (
+      taskKST.getFullYear() === nowKST.getFullYear() &&
+      taskKST.getMonth() === nowKST.getMonth() &&
+      taskKST.getDate() === nowKST.getDate()
+    );
+  }
 
   app.get("/api/tasks/date", ensureAuthenticated, async (req, res) => {
     try {
@@ -557,6 +557,91 @@ function isTaskFromToday(taskDate: Date): boolean {
       };
       const archivedTasks = await storage.getArchivedTasks(filters);
       res.json(archivedTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  // Add new co-work routes after the existing task routes
+  app.get("/api/tasks/co-work", ensureAuthenticated, async (req, res) => {
+    try {
+      const tasks = await storage.getAllTasks();
+      const users = Array.from((await storage.getUsers()).values());
+
+      const coWorkTasks = tasks
+        .filter(task => task.isCoWork)
+        .map(task => {
+          const user = users.find(u => u.id === task.userId);
+          return {
+            ...task,
+            username: user?.username || 'Unknown'
+          };
+        });
+
+      res.json(coWorkTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  app.post("/api/tasks/co-work", ensureAuthenticated, async (req, res) => {
+    try {
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+        status: "작업전",
+        isCoWork: true,
+        createdAt: new Date()
+      });
+
+      const task = await storage.createTask(taskData);
+      res.status(201).json(task);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  app.post("/api/tasks/co-work/:id/accept", ensureAuthenticated, async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const task = await storage.getTask(taskId);
+
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      if (!task.isCoWork) {
+        return res.status(400).json({ message: "This is not a co-work task" });
+      }
+
+      // Update task with new user information and remove co-work status
+      const updatedTask = await storage.updateTask(taskId, {
+        userId: req.user!.id,
+        username: req.user!.username,
+        isCoWork: false
+      });
+
+      res.json(updatedTask);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  app.delete("/api/tasks/co-work/:id", ensureAuthenticated, async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const task = await storage.getTask(taskId);
+
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      if (!task.isCoWork) {
+        return res.status(400).json({ message: "This is not a co-work task" });
+      }
+
+      await storage.deleteTask(taskId);
+      res.sendStatus(204);
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
     }

@@ -34,9 +34,9 @@ export const tasks = pgTable("tasks", {
   dueDate: timestamp("due_date"),
   username: text("username"),
   projectName: text("project_name"),
+  isCoWork: boolean("is_co_work").notNull().default(false),
 });
 
-// Update session table with correct types
 export const sessions = pgTable("session", {
   sid: varchar("sid").primaryKey(),
   sess: json("sess").notNull(),
@@ -59,6 +59,7 @@ export const insertTaskSchema = createInsertSchema(tasks).extend({
   projectId: z.number({ required_error: "Project is required" }),
   userId: z.number().optional(),
   dueDate: z.date().nullable().optional(),
+  isCoWork: z.boolean().optional().default(false),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
