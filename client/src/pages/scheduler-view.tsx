@@ -81,6 +81,7 @@ export default function SchedulerView() {
                       showActions={false}
                       showProject={false}
                       showAuthor={true}
+                      alwaysShowHeader={true}
                     />
                   </CardContent>
                 </Card>
@@ -101,6 +102,7 @@ export default function SchedulerView() {
                         showActions={false}
                         showProject={false}
                         showAuthor={true}
+                        alwaysShowHeader={true}
                       />
                     </CardContent>
                   </Card>

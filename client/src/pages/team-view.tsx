@@ -67,6 +67,7 @@ export default function TeamView() {
                     projects={projects}
                     showAuthor={true}
                     showActions={false}
+                    alwaysShowHeader={true}
                   />
                 </div>
               </TabsContent>

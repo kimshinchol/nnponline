@@ -200,6 +200,7 @@ export default function PersonalView() {
               showCreateButton={true}
               onCreate={createTaskMutation.mutate}
               customActions={taskActions}
+              alwaysShowHeader={true}
             />
           </div>
         </div>

@@ -315,6 +315,7 @@ export default function ProjectView() {
                         showAuthor={true}
                         showActions={false}
                         showProject={false}
+                        alwaysShowHeader={true}
                       />
                     </CardContent>
                   </Card>
