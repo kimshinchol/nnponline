@@ -268,14 +268,9 @@ export class DatabaseStorage implements IStorage {
   async archiveTasks(filters: ArchiveFilters): Promise<Task[]> {
     let query = db.select().from(tasks);
 
+    // Only filter by date, ignore status
     if (filters.before) {
       query = query.where(sql`${tasks.createdAt} < ${filters.before}`);
-    }
-    if (filters.status) {
-      query = query.where(eq(tasks.status, filters.status));
-    }
-    if (filters.projectId) {
-      query = query.where(eq(tasks.projectId, filters.projectId));
     }
 
     const tasksToArchive = await query;
