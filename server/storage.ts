@@ -266,6 +266,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async archiveTasks(filters: ArchiveFilters): Promise<Task[]> {
+    console.log("Starting archive process with filters:", filters);
+
     let query = db.select().from(tasks);
 
     if (filters.before) {
@@ -282,7 +284,8 @@ export class DatabaseStorage implements IStorage {
         await db
           .update(tasks)
           .set({ isArchived: true })
-          .where(eq(tasks.id, task.id));
+          .where(eq(tasks.id, task.id))
+          .returning();
         console.log(`Archived task ${task.id}: ${task.title}`);
       }
     }
@@ -291,21 +294,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]> {
-    console.log("Fetching archived tasks with filters:", filters);
+    console.log("Starting to fetch archived tasks");
 
-    let query = db
-      .select()
-      .from(tasks)
-      .where(eq(tasks.isArchived, true));
+    try {
+      const query = db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.isArchived, true));
 
-    if (filters?.before) {
-      query = query.where(sql`${tasks.createdAt} < ${filters.before}`);
+      const archivedTasks = await query;
+      console.log(`Found ${archivedTasks.length} archived tasks:`, archivedTasks);
+
+      return archivedTasks;
+    } catch (error) {
+      console.error("Error fetching archived tasks:", error);
+      throw error;
     }
-
-    const archivedTasks = await query;
-    console.log(`Found ${archivedTasks.length} archived tasks`);
-
-    return archivedTasks;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {
