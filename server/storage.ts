@@ -272,14 +272,18 @@ export class DatabaseStorage implements IStorage {
       query = query.where(sql`${tasks.createdAt} < ${filters.before}`);
     }
 
+    // Get tasks to archive
     const tasksToArchive = await query;
+    console.log(`Found ${tasksToArchive.length} tasks to archive`);
 
     if (tasksToArchive.length > 0) {
-      // Update tasks to be archived instead of deleting them
+      // Update tasks to be archived
       for (const task of tasksToArchive) {
-        await db.update(tasks)
+        await db
+          .update(tasks)
           .set({ isArchived: true })
           .where(eq(tasks.id, task.id));
+        console.log(`Archived task ${task.id}: ${task.title}`);
       }
     }
 
@@ -287,16 +291,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]> {
+    console.log("Fetching archived tasks with filters:", filters);
+
     let query = db
       .select()
       .from(tasks)
-      .where(sql`${tasks.isArchived} = true`);
+      .where(eq(tasks.isArchived, true));
 
     if (filters?.before) {
       query = query.where(sql`${tasks.createdAt} < ${filters.before}`);
     }
 
-    return await query;
+    const archivedTasks = await query;
+    console.log(`Found ${archivedTasks.length} archived tasks`);
+
+    return archivedTasks;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {

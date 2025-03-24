@@ -58,7 +58,12 @@ export default function AdminPage() {
         title: "Tasks Archived",
         description: "Selected tasks have been archived successfully.",
       });
+      // Invalidate both the archived tasks query and the active tasks queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/archived"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      // Refresh the form
+      archiveForm.reset();
     },
     onError: (error: Error) => {
       toast({
