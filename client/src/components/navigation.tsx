@@ -143,7 +143,13 @@ export function Navigation() {
               Co-Work
               {hasNewCoWorkTasks && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <BellIcon className="h-4 w-4 text-red-500" />
+                  <BellIcon
+                    className={`h-4 w-4 ${
+                      isActive("/co-work")
+                        ? "text-white" // White when menu is active (gray background)
+                        : "text-red-500" // Red when menu is inactive (white background)
+                    }`}
+                  />
                 </div>
               )}
             </Button>
