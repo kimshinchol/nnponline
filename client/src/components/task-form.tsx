@@ -33,9 +33,10 @@ interface TaskFormProps {
   projects: { id: number; name: string }[];
   isLoading?: boolean;
   initialData?: Task;
+  isCoWork?: boolean;
 }
 
-export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFormProps) {
+export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork }: TaskFormProps) {
   const [showPreviousTasks, setShowPreviousTasks] = useState(false);
 
   const form = useForm<InsertTask>({
@@ -44,7 +45,8 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
       title: initialData?.title || "",
       description: initialData?.description || "",
       status: initialData?.status || "작업전",
-      projectId: initialData?.projectId || (projects[0]?.id ?? 0), // Default to first project if available
+      projectId: initialData?.projectId || (projects[0]?.id ?? 0),
+      isCoWork: isCoWork || false,
     },
   });
 
@@ -65,6 +67,7 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData }: TaskFor
       ...data,
       projectId: Number(data.projectId),
       description: data.description || null,
+      isCoWork: isCoWork || false,
     });
   };
 

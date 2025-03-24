@@ -10,6 +10,7 @@ import {
   CalendarIcon,
   Menu,
   X,
+  UsersRoundIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -115,6 +116,15 @@ export function Navigation() {
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               Scheduler
+            </Button>
+          </Link>
+          <Link href="/co-work">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start ${isActive("/co-work") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+            >
+              <UsersRoundIcon className="mr-2 h-4 w-4" />
+              Co-Work
             </Button>
           </Link>
           {/* Show Admin link only for admin users */}

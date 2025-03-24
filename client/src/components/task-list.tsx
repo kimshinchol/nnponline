@@ -40,6 +40,11 @@ interface TaskListProps {
   isLoading?: boolean;
   createLoading?: boolean;
   showCreateButton?: boolean;
+  customActions?: (task: Task) => Array<{
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+  }>;
 }
 
 export function TaskList({
@@ -54,7 +59,8 @@ export function TaskList({
   showProject = true,
   isLoading,
   createLoading,
-  showCreateButton = false
+  showCreateButton = false,
+  customActions,
 }: TaskListProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
@@ -223,51 +229,70 @@ export function TaskList({
                   {showActions && (
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {onEdit && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingTask(task);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {onDelete && (
-                          <AlertDialog open={taskToDelete === task.id}>
-                            <AlertDialogTrigger asChild>
+                        {customActions ? (
+                          customActions(task).map((action, index) => (
+                            <Button
+                              key={index}
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                action.onClick();
+                              }}
+                              title={action.label}
+                            >
+                              {action.icon}
+                            </Button>
+                          ))
+                        ) : (
+                          <>
+                            {onEdit && (
                               <Button
-                                variant="destructive"
+                                variant="outline"
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setTaskToDelete(task.id);
+                                  setEditingTask(task);
                                 }}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" />
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  이 작업을 삭제하면 복구할 수 없습니다.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel onClick={() => setTaskToDelete(null)}>
-                                  아니오
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(task.id)}
-                                >
-                                  예
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                            )}
+                            {onDelete && (
+                              <AlertDialog open={taskToDelete === task.id}>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setTaskToDelete(task.id);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      이 작업을 삭제하면 복구할 수 없습니다.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setTaskToDelete(null)}>
+                                      아니오
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(task.id)}
+                                    >
+                                      예
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </>
                         )}
                       </div>
                     </TableCell>

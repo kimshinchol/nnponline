@@ -12,6 +12,7 @@ import PersonalView from "@/pages/personal-view";
 import TeamView from "@/pages/team-view";
 import ProjectView from "@/pages/project-view";
 import SchedulerView from "@/pages/scheduler-view";
+import CoWorkView from "@/pages/co-work-view";
 import AdminPage from "@/pages/admin-page";
 import { ProtectedRoute } from "./lib/protected-route";
 import { Redirect } from "wouter";
@@ -38,6 +39,7 @@ function Router() {
       <ProtectedRoute path="/scheduler" component={SchedulerView} />
       <ProtectedRoute path="/team" component={TeamView} />
       <ProtectedRoute path="/project" component={ProjectView} />
+      <ProtectedRoute path="/co-work" component={CoWorkView} />
       <AdminRoute path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>
