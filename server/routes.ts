@@ -288,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      // Filter out co-work tasks that haven't been accepted
+      // Only include non-co-work tasks
       const personalTasks = tasks.filter(task => !task.isCoWork);
 
       if (req.query.date) {
@@ -410,7 +410,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasks = allTasks.filter(task => {
         const isTaskFromCurrentDay = isTaskFromToday(new Date(task.createdAt));
         const isTeamMemberTask = teamUserIds.includes(task.userId);
-        return isTaskFromCurrentDay && isTeamMemberTask;
+        // Exclude co-work tasks
+        const isNotCoWork = !task.isCoWork;
+        return isTaskFromCurrentDay && isTeamMemberTask && isNotCoWork;
       });
 
       const tasksWithUsernames = tasks.map(task => {
@@ -429,8 +431,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/tasks/project/:projectId", ensureAuthenticated, async (req, res) => {
-    const tasks = await storage.getProjectTasks(parseInt(req.params.projectId));
-    res.json(tasks);
+    try {
+      const tasks = await storage.getProjectTasks(parseInt(req.params.projectId));
+      // Filter out co-work tasks
+      const nonCoWorkTasks = tasks.filter(task => !task.isCoWork);
+      res.json(nonCoWorkTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
   });
 
   app.patch("/api/tasks/:id/status", ensureAuthenticated, async (req, res) => {
@@ -483,7 +491,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectTasks = tasks
         .filter(task =>
           task.projectId !== null &&
-          isTaskFromToday(new Date(task.createdAt))
+          isTaskFromToday(new Date(task.createdAt)) &&
+          !task.isCoWork // Exclude co-work tasks
         )
         .map(task => {
           const user = users.find(u => u.id === task.userId);
@@ -608,6 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = parseInt(req.params.id);
       const task = await storage.getTask(taskId);
+      const user = req.user!;
 
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
@@ -617,11 +627,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "This is not a co-work task" });
       }
 
-      // Update task with new user information and remove co-work status
+      // Transfer complete ownership to the accepting user
       const updatedTask = await storage.updateTask(taskId, {
-        userId: req.user!.id,
-        username: req.user!.username,
-        isCoWork: false
+        userId: user.id,
+        username: user.username,
+        isCoWork: false,
+        // Update the task to reflect the accepting user's team and project
+        team: user.team
       });
 
       res.json(updatedTask);
