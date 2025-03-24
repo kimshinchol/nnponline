@@ -44,8 +44,8 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
-      status: initialData?.status || "작업전",
-      projectId: initialData?.projectId || (projects[0]?.id ?? 0),
+      status: (initialData?.status as "작업전" | "작업중" | "완료") || "작업전",
+      projectId: initialData?.projectId || projects[0]?.id || 0,
       isCoWork: isCoWork || false,
     },
   });
@@ -58,7 +58,7 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
   const handleCopyTask = (task: Task) => {
     form.setValue("title", task.title);
     form.setValue("description", task.description || "");
-    form.setValue("projectId", task.projectId);
+    form.setValue("projectId", task.projectId || projects[0]?.id || 0);
     setShowPreviousTasks(false);
   };
 
