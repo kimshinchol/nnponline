@@ -620,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Remove queryClient calls from the accept task endpoint
+  // Update the accept task endpoint to set new creation date
   app.post("/api/tasks/co-work/:id/accept", ensureAuthenticated, async (req, res) => {
     try {
       const taskId = parseInt(req.params.id);
@@ -635,11 +635,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "This is not a co-work task" });
       }
 
-      // Transfer ownership to the accepting user
+      // Transfer ownership to the accepting user and update creation date
       const updatedTask = await storage.updateTask(taskId, {
         userId: user.id,
         username: user.username,
-        isCoWork: false // Remove co-work flag to make it a personal task
+        isCoWork: false, // Remove co-work flag to make it a personal task
+        createdAt: new Date(), // Set new creation date to now
       });
 
       res.json(updatedTask);
