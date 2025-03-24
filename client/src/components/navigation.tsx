@@ -10,16 +10,28 @@ import {
   CalendarIcon,
   Menu,
   X,
-  UsersRoundIcon,
+  Share2Icon,
+  BellIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
 export function Navigation() {
   const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Query for co-work tasks to check for new ones
+  const { data: coWorkTasks = [] } = useQuery({
+    queryKey: ["/api/tasks/co-work"],
+    queryFn: async () => {
+      const res = await fetch("/api/tasks/co-work");
+      if (!res.ok) throw new Error("Failed to fetch co-work tasks");
+      return res.json();
+    }
+  });
 
   // Close mobile menu when location changes
   useEffect(() => {
@@ -34,6 +46,8 @@ export function Navigation() {
 
   // Only render navigation if user is authenticated
   if (!user) return null;
+
+  const hasNewCoWorkTasks = coWorkTasks.length > 0;
 
   return (
     <>
@@ -121,10 +135,20 @@ export function Navigation() {
           <Link href="/co-work">
             <Button
               variant="ghost"
-              className={`w-full justify-start ${isActive("/co-work") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+              className={`w-full justify-start relative ${isActive("/co-work") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
-              <UsersRoundIcon className="mr-2 h-4 w-4" />
+              <Share2Icon className="mr-2 h-4 w-4" />
               Co-Work
+              {hasNewCoWorkTasks && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                  <div className="relative">
+                    <BellIcon className="h-4 w-4 text-red-500" />
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
+                      N
+                    </span>
+                  </div>
+                </div>
+              )}
             </Button>
           </Link>
           {/* Show Admin link only for admin users */}
