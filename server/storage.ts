@@ -268,7 +268,6 @@ export class DatabaseStorage implements IStorage {
   async archiveTasks(filters: ArchiveFilters): Promise<Task[]> {
     let query = db.select().from(tasks);
 
-    // Only filter by date, ignore status
     if (filters.before) {
       query = query.where(sql`${tasks.createdAt} < ${filters.before}`);
     }
@@ -276,8 +275,10 @@ export class DatabaseStorage implements IStorage {
     const tasksToArchive = await query;
 
     if (tasksToArchive.length > 0) {
-      const taskIds = tasksToArchive.map(t => t.id);
-      await db.delete(tasks).where(sql`${tasks.id} = ANY(${taskIds}::int[])`);
+      // Delete tasks one by one to avoid array casting issues
+      for (const task of tasksToArchive) {
+        await db.delete(tasks).where(eq(tasks.id, task.id));
+      }
     }
 
     return tasksToArchive;
