@@ -669,6 +669,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add new endpoint to move personal task to co-work
+  app.post("/api/tasks/:id/move-to-cowork", ensureAuthenticated, async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const task = await storage.getTask(taskId);
+
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      if (task.userId !== req.user!.id) {
+        return res.status(403).json({ message: "You can only move your own tasks to co-work" });
+      }
+
+      if (task.isCoWork) {
+        return res.status(400).json({ message: "Task is already in co-work" });
+      }
+
+      // Update task to be a co-work task
+      const updatedTask = await storage.updateTask(taskId, {
+        isCoWork: true,
+        // Keep original task details for history
+        originalUserId: task.userId,
+        originalUsername: task.username
+      });
+
+      res.json(updatedTask);
+    } catch (err) {
+      console.error("Error moving task to co-work:", err);
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
