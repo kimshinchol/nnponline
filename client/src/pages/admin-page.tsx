@@ -29,6 +29,8 @@ import {
 import { useForm } from "react-hook-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { UserManagement } from "@/components/user-management";
+import { Link } from "wouter";
+import { HomeIcon } from "lucide-react";
 
 type ArchiveFilters = {
   before?: string;
@@ -147,7 +149,15 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Link href="/">
+          <Button variant="outline" className="gap-2">
+            <HomeIcon className="h-4 w-4" />
+            Return to Overview
+          </Button>
+        </Link>
+      </div>
 
       {/* User Management Section */}
       <UserManagement />
