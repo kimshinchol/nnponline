@@ -271,7 +271,11 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(tasks);
 
     if (filters.before) {
-      query = query.where(sql`${tasks.createdAt} < ${filters.before}`);
+      // Only archive tasks that are before the selected date AND not from today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      query = query.where(sql`${tasks.createdAt} < ${filters.before} AND DATE(${tasks.createdAt}) != CURRENT_DATE`);
     }
 
     // Get tasks to archive
@@ -300,7 +304,8 @@ export class DatabaseStorage implements IStorage {
       const query = db
         .select()
         .from(tasks)
-        .where(eq(tasks.isArchived, true));
+        .where(eq(tasks.isArchived, true))
+        .orderBy(sql`${tasks.createdAt} DESC`);
 
       const archivedTasks = await query;
       console.log(`Found ${archivedTasks.length} archived tasks:`, archivedTasks);
