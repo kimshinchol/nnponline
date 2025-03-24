@@ -344,8 +344,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
           kstTaskDate.setHours(0, 0, 0, 0);
 
+          // Add isCoWork check to filter out co-work tasks
           return (
-            kstTaskDate.getTime() === kstFilterDate.getTime()
+            kstTaskDate.getTime() === kstFilterDate.getTime() &&
+            !task.isCoWork // Exclude co-work tasks
           );
         });
 
