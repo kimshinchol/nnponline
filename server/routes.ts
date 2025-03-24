@@ -287,8 +287,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      // Only include non-co-work tasks
-      const personalTasks = tasks.filter(task => !task.isCoWork);
+      // Only include tasks that belong to the current user and are not co-work tasks
+      const personalTasks = tasks.filter(task =>
+        task.userId === req.user!.id && !task.isCoWork
+      );
 
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
@@ -316,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   function isTaskFromToday(taskDate: Date): boolean {
-    const kstOffset = 9 * 60; 
+    const kstOffset = 9 * 60;
     const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
     const nowKST = new Date(Date.now() + kstOffset * 60000);
 
@@ -372,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tasks = await storage.getUserTasks(req.user!.id);
 
-      const sortedTasks = tasks.sort((a, b) => 
+      const sortedTasks = tasks.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
@@ -380,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
 
-      const kstOffset = 9 * 60; 
+      const kstOffset = 9 * 60;
       const mostRecentTaskDate = new Date(sortedTasks[0].createdAt);
       const mostRecentKST = new Date(mostRecentTaskDate.getTime() + kstOffset * 60000);
       mostRecentKST.setHours(0, 0, 0, 0);
