@@ -288,12 +288,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tasks = await storage.getUserTasks(req.user!.id);
 
+      // Filter out co-work tasks that haven't been accepted
+      const personalTasks = tasks.filter(task => !task.isCoWork);
+
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
         const kstOffset = 9 * 60;
         const kstFilterDate = new Date(filterDate.getTime() + kstOffset * 60000);
 
-        const filteredTasks = tasks.filter(task => {
+        const filteredTasks = personalTasks.filter(task => {
           const taskDate = new Date(task.createdAt);
           const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
 
@@ -306,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(filteredTasks);
       }
 
-      const todaysTasks = tasks.filter(task => isTaskFromToday(new Date(task.createdAt)));
+      const todaysTasks = personalTasks.filter(task => isTaskFromToday(new Date(task.createdAt)));
       res.json(todaysTasks);
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
