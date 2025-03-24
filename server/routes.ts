@@ -618,6 +618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Remove queryClient calls from the accept task endpoint
   app.post("/api/tasks/co-work/:id/accept", ensureAuthenticated, async (req, res) => {
     try {
       const taskId = parseInt(req.params.id);
@@ -638,12 +639,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: user.username,
         isCoWork: false // Remove co-work flag to make it a personal task
       });
-
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
 
       res.json(updatedTask);
     } catch (err) {
