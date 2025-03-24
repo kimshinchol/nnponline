@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TaskForm } from "@/components/task-form";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -14,6 +24,7 @@ export default function CoWorkView() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
@@ -30,12 +41,11 @@ export default function CoWorkView() {
       return res.json();
     },
     onSuccess: () => {
-      // Invalidate all relevant queries to ensure proper updates across views
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/date"] }); // For scheduler view
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/date"] });
       toast({
         title: "Success",
         description: "Task accepted successfully",
@@ -80,11 +90,11 @@ export default function CoWorkView() {
         const error = await res.json();
         throw new Error(error.message || "Failed to delete task");
       }
-      // Don't try to parse response for successful deletion (204 status)
       return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
+      setTaskToDelete(null);
       toast({
         title: "Success",
         description: "Task deleted successfully",
@@ -113,7 +123,7 @@ export default function CoWorkView() {
     {
       icon: <Trash2 className="h-4 w-4" />,
       label: "Delete",
-      onClick: () => deleteTaskMutation.mutate(task.id),
+      onClick: () => setTaskToDelete(task.id),
     },
   ];
 
@@ -177,6 +187,27 @@ export default function CoWorkView() {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={taskToDelete !== null} onOpenChange={(open) => !open && setTaskToDelete(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>정말 삭제할까요?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  이 작업을 삭제하면 복구할 수 없습니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setTaskToDelete(null)}>아니오</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => taskToDelete && deleteTaskMutation.mutate(taskToDelete)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  예
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {isLoading ? (
             <div>Loading tasks...</div>

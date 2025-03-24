@@ -6,12 +6,23 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Share2, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TaskForm } from "@/components/task-form";
 import { useState } from "react";
 
 export default function PersonalView() {
   const { toast } = useToast();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
   const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/user"],
@@ -49,18 +60,6 @@ export default function PersonalView() {
     },
   });
 
-  const updateTaskStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const res = await apiRequest("PATCH", `/api/tasks/${id}/status`, { status });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
-    },
-  });
-
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: number) => {
       const res = await apiRequest("DELETE", `/api/tasks/${id}`);
@@ -70,36 +69,10 @@ export default function PersonalView() {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+      setTaskToDelete(null);
       toast({
         title: "Success",
         description: "Task deleted successfully",
-      });
-    },
-  });
-
-  const createTaskMutation = useMutation({
-    mutationFn: async (task: InsertTask) => {
-      const res = await apiRequest("POST", "/api/tasks", task);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to create task");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
-      toast({
-        title: "Success",
-        description: "Task created successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create task",
-        variant: "destructive",
       });
     },
   });
@@ -132,14 +105,6 @@ export default function PersonalView() {
     },
   });
 
-  const handleStatusChange = (taskId: number, status: string) => {
-    updateTaskStatusMutation.mutate({ id: taskId, status });
-  };
-
-  const handleDeleteTask = (taskId: number) => {
-    deleteTaskMutation.mutate(taskId);
-  };
-
   const handleMoveToCoWork = (taskId: number) => {
     moveToCoWorkMutation.mutate(taskId);
   };
@@ -153,7 +118,7 @@ export default function PersonalView() {
     {
       icon: <Trash2 className="h-4 w-4" />,
       label: "Delete",
-      onClick: () => handleDeleteTask(task.id),
+      onClick: () => setTaskToDelete(task.id),
     },
     {
       icon: <Share2 className="h-4 w-4" />,
@@ -171,8 +136,6 @@ export default function PersonalView() {
           <div className="w-full overflow-x-hidden">
             <TaskList
               tasks={tasks || []}
-              onStatusChange={handleStatusChange}
-              onDelete={handleDeleteTask}
               onCreate={createTaskMutation.mutate}
               projects={projects || []}
               isLoading={tasksLoading}
@@ -207,6 +170,27 @@ export default function PersonalView() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={taskToDelete !== null} onOpenChange={(open) => !open && setTaskToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>정말 삭제할까요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              이 작업을 삭제하면 복구할 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setTaskToDelete(null)}>아니오</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => taskToDelete && deleteTaskMutation.mutate(taskToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              예
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
