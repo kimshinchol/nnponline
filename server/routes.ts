@@ -607,9 +607,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date()
       });
 
+      console.log("Creating co-work task with data:", taskData); // Add logging
       const task = await storage.createTask(taskData);
+      console.log("Created co-work task:", task); // Add logging
+
       res.status(201).json(task);
     } catch (err) {
+      console.error("Error creating co-work task:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });
@@ -635,7 +639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isCoWork: false // Remove co-work flag to make it a personal task
       });
 
-      // Invalidate relevant queries (assuming you're using a query invalidation library like React Query's queryClient)
+      // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
@@ -643,6 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(updatedTask);
     } catch (err) {
+      console.error("Error accepting co-work task:", err);
       res.status(400).json({ message: (err as Error).message });
     }
   });
