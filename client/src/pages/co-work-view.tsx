@@ -72,8 +72,12 @@ export default function CoWorkView() {
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
       const res = await apiRequest("DELETE", `/api/tasks/co-work/${taskId}`);
-      if (!res.ok) throw new Error("Failed to delete task");
-      return res.json();
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to delete task");
+      }
+      // Don't try to parse response for successful deletion (204 status)
+      return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
