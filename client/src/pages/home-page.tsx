@@ -97,13 +97,13 @@ export default function HomePage() {
                       <div className="md:hidden flex items-center justify-between p-4">
                         <CardTitle className="text-sm">{team}</CardTitle>
                         <div className="flex items-center gap-2">
-                          <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-medium">
+                          <span className="w-8 h-8 flex items-center justify-center font-medium text-orange-600">
                             {counts.notStarted}
                           </span>
-                          <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-medium">
+                          <span className="w-8 h-8 flex items-center justify-center font-medium text-red-600">
                             {counts.inProgress}
                           </span>
-                          <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-medium">
+                          <span className="w-8 h-8 flex items-center justify-center font-medium text-green-600">
                             {counts.completed}
                           </span>
                         </div>
@@ -117,13 +117,13 @@ export default function HomePage() {
                         <CardContent className="py-2">
                           <div className="flex justify-center">
                             <div className="flex items-center gap-2">
-                              <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-medium">
+                              <span className="w-8 h-8 flex items-center justify-center font-medium text-orange-600">
                                 {counts.notStarted}
                               </span>
-                              <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-medium">
+                              <span className="w-8 h-8 flex items-center justify-center font-medium text-red-600">
                                 {counts.inProgress}
                               </span>
-                              <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-medium">
+                              <span className="w-8 h-8 flex items-center justify-center font-medium text-green-600">
                                 {counts.completed}
                               </span>
                             </div>
