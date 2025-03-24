@@ -140,13 +140,8 @@ export function Navigation() {
               <Share2Icon className="mr-2 h-4 w-4" />
               Co-Work
               {hasNewCoWorkTasks && (
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                  <div className="relative">
-                    <BellIcon className="h-4 w-4 text-red-500" />
-                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
-                      N
-                    </span>
-                  </div>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <BellIcon className="h-4 w-4 text-red-500" />
                 </div>
               )}
             </Button>
