@@ -16,7 +16,6 @@ async function createDefaultAdminIfNeeded() {
         username: "admin",
         password: hashedPassword,
         email: "admin@example.com", // Add required email field
-        team: "PM", // Add required team field
         isAdmin: true,
         isApproved: true
       });
@@ -629,15 +628,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "This is not a co-work task" });
       }
 
-      // Transfer complete ownership to the accepting user
+      // Transfer ownership to the accepting user
       const updatedTask = await storage.updateTask(taskId, {
         userId: user.id,
         username: user.username,
-        isCoWork: false,
-        // Update the task to reflect the accepting user's team and project details
-        team: user.team,
-        projectName: task.projectName // Preserve the original project name
+        isCoWork: false // Remove co-work flag to make it a personal task
       });
+
+      // Invalidate relevant queries (assuming you're using a query invalidation library like React Query's queryClient)
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
 
       res.json(updatedTask);
     } catch (err) {
