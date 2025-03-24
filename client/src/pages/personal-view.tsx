@@ -32,6 +32,33 @@ export default function PersonalView() {
     queryKey: ["/api/projects"],
   });
 
+  const createTaskMutation = useMutation({
+    mutationFn: async (data: InsertTask) => {
+      const res = await apiRequest("POST", "/api/tasks", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to create task");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+      toast({
+        title: "Success",
+        description: "Task created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create task",
+        variant: "destructive",
+      });
+    },
+  });
+
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<Task> }) => {
       const res = await apiRequest("PATCH", `/api/tasks/${id}`, data);
@@ -75,6 +102,26 @@ export default function PersonalView() {
         description: "Task deleted successfully",
       });
     },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete task",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateTaskStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/tasks/${id}/status`, { status });
+      if (!res.ok) throw new Error("Failed to update task status");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+    },
   });
 
   const moveToCoWorkMutation = useMutation({
@@ -104,6 +151,10 @@ export default function PersonalView() {
       });
     },
   });
+
+  const handleStatusChange = (taskId: number, status: string) => {
+    updateTaskStatusMutation.mutate({ id: taskId, status });
+  };
 
   const handleMoveToCoWork = (taskId: number) => {
     moveToCoWorkMutation.mutate(taskId);
@@ -136,11 +187,12 @@ export default function PersonalView() {
           <div className="w-full overflow-x-hidden">
             <TaskList
               tasks={tasks || []}
-              onCreate={createTaskMutation.mutate}
+              onStatusChange={handleStatusChange}
               projects={projects || []}
               isLoading={tasksLoading}
               createLoading={createTaskMutation.isPending}
               showCreateButton={true}
+              onCreate={createTaskMutation.mutate}
               customActions={taskActions}
             />
           </div>
