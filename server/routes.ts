@@ -634,8 +634,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         username: user.username,
         isCoWork: false,
-        // Update the task to reflect the accepting user's team and project
-        team: user.team
+        // Update the task to reflect the accepting user's team and project details
+        team: user.team,
+        projectName: task.projectName // Preserve the original project name
       });
 
       res.json(updatedTask);
