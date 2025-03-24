@@ -30,8 +30,14 @@ export default function CoWorkView() {
     queryKey: ["/api/projects"],
   });
 
-  const { data: tasks, isLoading } = useQuery<Task[]>({
+  const { data: tasks = [], isLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/co-work"],
+    select: (data) => {
+      // Sort tasks by creation date, newest first
+      return [...data].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
   });
 
   const acceptTaskMutation = useMutation({

@@ -24,8 +24,14 @@ export default function PersonalView() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
-  const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/user"],
+    select: (data) => {
+      // Sort tasks by creation date, newest first
+      return [...data].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
   });
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
@@ -186,7 +192,7 @@ export default function PersonalView() {
           <div className="h-8 mb-6"></div>
           <div className="w-full overflow-x-hidden">
             <TaskList
-              tasks={tasks || []}
+              tasks={tasks}
               onStatusChange={handleStatusChange}
               projects={projects || []}
               isLoading={tasksLoading}

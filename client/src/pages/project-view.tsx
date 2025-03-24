@@ -51,6 +51,12 @@ export default function ProjectView() {
 
   const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/project"],
+    select: (data) => {
+      // Sort tasks by creation date, newest first
+      return data ? [...data].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ) : [];
+    }
   });
 
   const tasksByProject = tasks?.reduce((acc, task) => {

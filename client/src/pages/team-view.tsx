@@ -33,6 +33,12 @@ export default function TeamView() {
         if (!res.ok) throw new Error("Failed to fetch team tasks");
         return res.json();
       },
+      select: (data) => {
+        // Sort tasks by creation date, newest first
+        return [...data].sort((a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      }
     }),
   );
 
