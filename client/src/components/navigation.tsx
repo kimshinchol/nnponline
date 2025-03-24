@@ -49,6 +49,8 @@ export function Navigation() {
 
   const hasNewCoWorkTasks = coWorkTasks.length > 0;
 
+  const activeClass = "bg-[#939598] text-white hover:bg-[#939598] hover:text-white [&>svg]:text-white";
+
   return (
     <>
       {/* Mobile Menu Button - Only show when menu is closed */}
@@ -90,7 +92,7 @@ export function Navigation() {
           <Link href="/">
             <Button
               variant="ghost"
-              className={`w-full justify-start ${isActive("/") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+              className={`w-full justify-start ${isActive("/") ? activeClass : ""}`}
             >
               <HomeIcon className="mr-2 h-4 w-4" />
               Overview
@@ -99,7 +101,7 @@ export function Navigation() {
           <Link href="/personal">
             <Button
               variant="ghost"
-              className={`w-full justify-start ${isActive("/personal") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+              className={`w-full justify-start ${isActive("/personal") ? activeClass : ""}`}
             >
               <UserIcon className="mr-2 h-4 w-4" />
               Tasks
@@ -108,7 +110,7 @@ export function Navigation() {
           <Link href="/team">
             <Button
               variant="ghost"
-              className={`w-full justify-start ${isActive("/team") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+              className={`w-full justify-start ${isActive("/team") ? activeClass : ""}`}
             >
               <UsersIcon className="mr-2 h-4 w-4" />
               Team
@@ -117,7 +119,7 @@ export function Navigation() {
           <Link href="/project">
             <Button
               variant="ghost"
-              className={`w-full justify-start ${isActive("/project") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+              className={`w-full justify-start ${isActive("/project") ? activeClass : ""}`}
             >
               <FolderIcon className="mr-2 h-4 w-4" />
               Project
@@ -126,7 +128,7 @@ export function Navigation() {
           <Link href="/scheduler">
             <Button
               variant="ghost"
-              className={`w-full justify-start ${isActive("/scheduler") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+              className={`w-full justify-start ${isActive("/scheduler") ? activeClass : ""}`}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               Scheduler
@@ -135,7 +137,7 @@ export function Navigation() {
           <Link href="/co-work">
             <Button
               variant="ghost"
-              className={`w-full justify-start relative ${isActive("/co-work") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+              className={`w-full justify-start relative ${isActive("/co-work") ? activeClass : ""}`}
             >
               <Share2Icon className="mr-2 h-4 w-4" />
               Co-Work
@@ -151,7 +153,7 @@ export function Navigation() {
             <Link href="/admin">
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${isActive("/admin") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
+                className={`w-full justify-start ${isActive("/admin") ? activeClass : ""}`}
               >
                 <ShieldIcon className="mr-2 h-4 w-4" />
                 Admin
