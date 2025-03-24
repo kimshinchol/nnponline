@@ -53,7 +53,7 @@ export default function ProjectView() {
     queryKey: ["/api/tasks/project"],
     select: (data) => {
       // Sort tasks by creation date, newest first
-      return data ? [...data].sort((a, b) => 
+      return data ? [...data].sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       ) : [];
     }
@@ -148,7 +148,7 @@ export default function ProjectView() {
         <div className="max-w-6xl mx-auto w-full">
           <div className="h-8 mb-6"></div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Projects</h2>
+            <div></div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="text-sm">

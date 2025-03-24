@@ -140,7 +140,7 @@ export default function CoWorkView() {
         <div className="max-w-6xl mx-auto w-full">
           <div className="h-8 mb-6"></div>
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Co-Work Tasks</h2>
+            <div></div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="text-sm">
@@ -215,20 +215,14 @@ export default function CoWorkView() {
             </AlertDialogContent>
           </AlertDialog>
 
-          {isLoading ? (
-            <div>Loading tasks...</div>
-          ) : !tasks || tasks.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No co-work tasks available.
-            </div>
-          ) : (
-            <TaskList
-              tasks={tasks}
-              projects={projects || []}
-              showAuthor={true}
-              customActions={taskActions}
-            />
-          )}
+          <TaskList
+            tasks={tasks}
+            projects={projects || []}
+            showAuthor={true}
+            customActions={taskActions}
+            isLoading={isLoading}
+            alwaysShowHeader={true}
+          />
         </div>
       </main>
     </div>

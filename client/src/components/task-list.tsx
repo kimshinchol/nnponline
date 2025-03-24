@@ -11,27 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { TaskForm } from "./task-form";
-import { Pencil, Trash2, Plus } from "lucide-react";
-import { Celebration } from "@/components/ui/celebration";
+import { Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TaskListProps {
   tasks: Task[];
   onStatusChange?: (taskId: number, status: string) => void;
-  onDelete?: (taskId: number) => void;
-  onEdit?: (taskId: number, updatedTask: Partial<Task>) => void;
   onCreate?: (task: any) => void;
   projects?: { id: number; name: string }[];
   showAuthor?: boolean;
@@ -40,6 +26,7 @@ interface TaskListProps {
   isLoading?: boolean;
   createLoading?: boolean;
   showCreateButton?: boolean;
+  alwaysShowHeader?: boolean;
   customActions?: (task: Task) => Array<{
     icon: React.ReactNode;
     label: string;
@@ -50,8 +37,6 @@ interface TaskListProps {
 export function TaskList({
   tasks,
   onStatusChange,
-  onDelete,
-  onEdit,
   onCreate,
   projects = [],
   showAuthor = false,
@@ -60,14 +45,13 @@ export function TaskList({
   isLoading,
   createLoading,
   showCreateButton = false,
+  alwaysShowHeader = false,
   customActions,
 }: TaskListProps) {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationPosition, setCelebrationPosition] = useState<{ x: number; y: number } | null>(null);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -114,20 +98,6 @@ export function TaskList({
     }
   };
 
-  const handleEditSubmit = (updatedTask: Partial<Task>) => {
-    if (editingTask && onEdit) {
-      onEdit(editingTask.id, updatedTask);
-      setEditingTask(null);
-    }
-  };
-
-  const handleDelete = (taskId: number) => {
-    if (onDelete) {
-      onDelete(taskId);
-      setTaskToDelete(null);
-    }
-  };
-
   if (isLoading) {
     return <div>Loading tasks...</div>;
   }
@@ -154,12 +124,6 @@ export function TaskList({
 
   return (
     <>
-      {showCelebration && celebrationPosition && (
-        <Celebration
-          position={celebrationPosition}
-          onComplete={() => setShowCelebration(false)}
-        />
-      )}
       <div className="w-full overflow-hidden">
         <div className="flex justify-end items-center mb-4">
           {showCreateButton && onCreate && (
@@ -173,16 +137,18 @@ export function TaskList({
           )}
         </div>
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[25%]">Title</TableHead>
-              <TableHead className="w-[30%] hidden sm:table-cell">Description</TableHead>
-              <TableHead className="w-[15%]">Status</TableHead>
-              {showProject && <TableHead className="w-[15%] hidden sm:table-cell">Project</TableHead>}
-              {showAuthor && <TableHead className="w-[15%] hidden sm:table-cell">Author</TableHead>}
-              {showActions && <TableHead className="w-[15%]">Actions</TableHead>}
-            </TableRow>
-          </TableHeader>
+          {alwaysShowHeader && (
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[25%]">Title</TableHead>
+                <TableHead className="w-[30%] hidden sm:table-cell">Description</TableHead>
+                <TableHead className="w-[15%]">Status</TableHead>
+                {showProject && <TableHead className="w-[15%] hidden sm:table-cell">Project</TableHead>}
+                {showAuthor && <TableHead className="w-[15%] hidden sm:table-cell">Author</TableHead>}
+                {showActions && <TableHead className="w-[15%]">Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+          )}
           <TableBody>
             <AnimatePresence mode="popLayout">
               {tasks.map((task, index) => (
@@ -229,71 +195,20 @@ export function TaskList({
                   {showActions && (
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {customActions ? (
-                          customActions(task).map((action, index) => (
-                            <Button
-                              key={index}
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                action.onClick();
-                              }}
-                              title={action.label}
-                            >
-                              {action.icon}
-                            </Button>
-                          ))
-                        ) : (
-                          <>
-                            {onEdit && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingTask(task);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {onDelete && (
-                              <AlertDialog open={taskToDelete === task.id}>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setTaskToDelete(task.id);
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>정말 삭제할까요?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      이 작업을 삭제하면 복구할 수 없습니다.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel onClick={() => setTaskToDelete(null)}>
-                                      아니오
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => handleDelete(task.id)}
-                                    >
-                                      예
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
-                          </>
-                        )}
+                        {customActions && customActions(task).map((action, index) => (
+                          <Button
+                            key={index}
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              action.onClick();
+                            }}
+                            title={action.label}
+                          >
+                            {action.icon}
+                          </Button>
+                        ))}
                       </div>
                     </TableCell>
                   )}
@@ -334,20 +249,6 @@ export function TaskList({
               </Badge>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Task Dialog */}
-      <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Task</DialogTitle>
-          </DialogHeader>
-          <TaskForm
-            onSubmit={handleEditSubmit}
-            projects={projects}
-            initialData={editingTask || undefined}
-          />
         </DialogContent>
       </Dialog>
 
