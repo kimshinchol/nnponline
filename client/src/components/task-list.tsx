@@ -274,7 +274,7 @@ export function TaskList({
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>정말 삭제하시겠습니까?</AlertDialogTitle>
+                                    <AlertDialogTitle>정말 삭제할까요?</AlertDialogTitle>
                                     <AlertDialogDescription>
                                       이 작업을 삭제하면 복구할 수 없습니다.
                                     </AlertDialogDescription>
