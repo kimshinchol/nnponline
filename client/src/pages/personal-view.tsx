@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Task, InsertTask } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Share2 } from "lucide-react";
+import { Share2, Pencil, Trash2 } from "lucide-react";
 
 export default function PersonalView() {
   const { toast } = useToast();
@@ -132,6 +132,16 @@ export default function PersonalView() {
   };
 
   const taskActions = (task: Task) => [
+    {
+      icon: <Pencil className="h-4 w-4" />,
+      label: "Edit",
+      onClick: () => handleEditTask(task.id, task),
+    },
+    {
+      icon: <Trash2 className="h-4 w-4" />,
+      label: "Delete",
+      onClick: () => handleDeleteTask(task.id),
+    },
     {
       icon: <Share2 className="h-4 w-4" />,
       label: "Move to Co-Work",
