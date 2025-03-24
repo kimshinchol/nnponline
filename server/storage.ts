@@ -275,9 +275,11 @@ export class DatabaseStorage implements IStorage {
     const tasksToArchive = await query;
 
     if (tasksToArchive.length > 0) {
-      // Delete tasks one by one to avoid array casting issues
+      // Update tasks to be archived instead of deleting them
       for (const task of tasksToArchive) {
-        await db.delete(tasks).where(eq(tasks.id, task.id));
+        await db.update(tasks)
+          .set({ isArchived: true })
+          .where(eq(tasks.id, task.id));
       }
     }
 
@@ -285,7 +287,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getArchivedTasks(filters?: ArchiveFilters): Promise<Task[]> {
-    return [];
+    let query = db
+      .select()
+      .from(tasks)
+      .where(sql`${tasks.isArchived} = true`);
+
+    if (filters?.before) {
+      query = query.where(sql`${tasks.createdAt} < ${filters.before}`);
+    }
+
+    return await query;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {

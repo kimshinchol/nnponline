@@ -285,19 +285,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/user", ensureAuthenticated, async (req, res) => {
     try {
-      const tasks = await storage.getUserTasks(req.user!.id);
+      const allTasks = await storage.getUserTasks(req.user!.id);
 
-      // Only include tasks that belong to the current user and are not co-work tasks
-      const personalTasks = tasks.filter(task =>
-        task.userId === req.user!.id && !task.isCoWork
-      );
+      // Filter out archived tasks
+      const activeTasks = allTasks.filter(task => !task.isArchived);
 
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
         const kstOffset = 9 * 60;
         const kstFilterDate = new Date(filterDate.getTime() + kstOffset * 60000);
 
-        const filteredTasks = personalTasks.filter(task => {
+        const filteredTasks = activeTasks.filter(task => {
           const taskDate = new Date(task.createdAt);
           const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
 
@@ -310,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(filteredTasks);
       }
 
-      const todaysTasks = personalTasks.filter(task => isTaskFromToday(new Date(task.createdAt)));
+      const todaysTasks = activeTasks.filter(task => isTaskFromToday(new Date(task.createdAt)));
       res.json(todaysTasks);
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
@@ -331,8 +329,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/date", ensureAuthenticated, async (req, res) => {
     try {
-      const tasks = await storage.getAllTasks();
+      const allTasks = await storage.getAllTasks();
       const users = Array.from((await storage.getUsers()).values());
+
+      // Filter out archived tasks
+      const activeTasks = allTasks.filter(task => !task.isArchived);
 
       if (req.query.date) {
         const filterDate = new Date(req.query.date as string);
@@ -340,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const kstFilterDate = new Date(filterDate.getTime() + kstOffset * 60000);
         kstFilterDate.setHours(0, 0, 0, 0);
 
-        const filteredTasks = tasks.filter(task => {
+        const filteredTasks = activeTasks.filter(task => {
           const taskDate = new Date(task.createdAt);
           const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
           kstTaskDate.setHours(0, 0, 0, 0);
@@ -372,9 +373,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/previous", ensureAuthenticated, async (req, res) => {
     try {
-      const tasks = await storage.getUserTasks(req.user!.id);
+      const allTasks = await storage.getUserTasks(req.user!.id);
+      // Filter out archived tasks
+      const activeTasks = allTasks.filter(task => !task.isArchived);
 
-      const sortedTasks = tasks.sort((a, b) =>
+      const sortedTasks = activeTasks.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
@@ -409,8 +412,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teamUserIds = teamUsers.map(user => user.id);
 
       const allTasks = await storage.getAllTasks();
+      // Filter out archived tasks
+      const activeTasks = allTasks.filter(task => !task.isArchived);
 
-      const tasks = allTasks.filter(task => {
+      const tasks = activeTasks.filter(task => {
         const isTaskFromCurrentDay = isTaskFromToday(new Date(task.createdAt));
         const isTeamMemberTask = teamUserIds.includes(task.userId);
         // Exclude co-work tasks
@@ -435,9 +440,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/project/:projectId", ensureAuthenticated, async (req, res) => {
     try {
-      const tasks = await storage.getProjectTasks(parseInt(req.params.projectId));
+      const allTasks = await storage.getProjectTasks(parseInt(req.params.projectId));
+      // Filter out archived tasks
+      const activeTasks = allTasks.filter(task => !task.isArchived);
       // Filter out co-work tasks
-      const nonCoWorkTasks = tasks.filter(task => !task.isCoWork);
+      const nonCoWorkTasks = activeTasks.filter(task => !task.isCoWork);
       res.json(nonCoWorkTasks);
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
@@ -488,10 +495,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tasks/project", ensureAuthenticated, async (req, res) => {
     try {
-      const tasks = await storage.getAllTasks();
+      const allTasks = await storage.getAllTasks();
+      // Filter out archived tasks
+      const activeTasks = allTasks.filter(task => !task.isArchived);
       const users = Array.from((await storage.getUsers()).values());
 
-      const projectTasks = tasks
+      const projectTasks = activeTasks
         .filter(task =>
           task.projectId !== null &&
           isTaskFromToday(new Date(task.createdAt)) &&
@@ -580,10 +589,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add new co-work routes after the existing task routes
   app.get("/api/tasks/co-work", ensureAuthenticated, async (req, res) => {
     try {
-      const tasks = await storage.getAllTasks();
+      const allTasks = await storage.getAllTasks();
+      // Filter out archived tasks
+      const activeTasks = allTasks.filter(task => !task.isArchived);
       const users = Array.from((await storage.getUsers()).values());
 
-      const coWorkTasks = tasks
+      const coWorkTasks = activeTasks
         .filter(task => task.isCoWork)
         .map(task => {
           const user = users.find(u => u.id === task.userId);

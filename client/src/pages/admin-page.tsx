@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { UserManagement } from "@/components/user-management";
 import { Link } from "wouter";
 import { HomeIcon } from "lucide-react";
+import { Task } from "@shared/schema";
 
 type ArchiveFilters = {
   before?: string;
@@ -33,7 +34,7 @@ export default function AdminPage() {
   const { toast } = useToast();
 
   // Query for archived tasks
-  const { data: archivedTasks } = useQuery({
+  const { data: archivedTasks, isLoading: isLoadingArchived } = useQuery<Task[]>({
     queryKey: ["/api/tasks/archived"],
     queryFn: async () => {
       const response = await fetch("/api/tasks/archived");
@@ -42,11 +43,14 @@ export default function AdminPage() {
     },
   });
 
-
   // Archive tasks mutation
   const archiveTasksMutation = useMutation({
     mutationFn: async (filters: ArchiveFilters) => {
       const response = await apiRequest("POST", "/api/tasks/archive", filters);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to archive tasks");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -54,7 +58,7 @@ export default function AdminPage() {
         title: "Tasks Archived",
         description: "Selected tasks have been archived successfully.",
       });
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/archived"] });
     },
     onError: (error: Error) => {
       toast({
@@ -130,25 +134,48 @@ export default function AdminPage() {
           <CardDescription>View your archived tasks</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {archivedTasks?.map((task: any) => (
-              <div
-                key={task.id}
-                className="p-4 border rounded-lg bg-muted"
-              >
-                <h3 className="font-medium">{task.title}</h3>
-                <p className="text-sm text-muted-foreground">{task.description}</p>
-                <div className="mt-2 text-sm">
-                  <span className="text-muted-foreground">Status: </span>
-                  {task.status}
+          {isLoadingArchived ? (
+            <div className="text-center py-4">Loading archived tasks...</div>
+          ) : !archivedTasks?.length ? (
+            <div className="text-center py-4 text-muted-foreground">No archived tasks found</div>
+          ) : (
+            <div className="space-y-4">
+              {archivedTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="p-4 border rounded-lg bg-muted"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">{task.title}</h3>
+                      <p className="text-sm text-muted-foreground">{task.description}</p>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      task.status === "완료" ? "bg-green-100 text-green-800" :
+                      task.status === "작업중" ? "bg-yellow-100 text-yellow-800" :
+                      "bg-gray-100 text-gray-800"
+                    }`}>
+                      {task.status}
+                    </span>
+                  </div>
+                  <div className="mt-2 text-sm space-y-1">
+                    <div>
+                      <span className="text-muted-foreground">Project: </span>
+                      {task.projectName || "No Project"}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Author: </span>
+                      {task.username || "Unknown"}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Created: </span>
+                      {new Date(task.createdAt).toLocaleString()}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Created: </span>
-                  {new Date(task.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

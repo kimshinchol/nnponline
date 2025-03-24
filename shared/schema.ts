@@ -35,6 +35,7 @@ export const tasks = pgTable("tasks", {
   username: text("username"),
   projectName: text("project_name"),
   isCoWork: boolean("is_co_work").notNull().default(false),
+  isArchived: boolean("is_archived").notNull().default(false),
 });
 
 export const sessions = pgTable("session", {
@@ -60,6 +61,7 @@ export const insertTaskSchema = createInsertSchema(tasks).extend({
   userId: z.number().optional(),
   dueDate: z.date().nullable().optional(),
   isCoWork: z.boolean().optional().default(false),
+  isArchived: z.boolean().optional().default(false),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
