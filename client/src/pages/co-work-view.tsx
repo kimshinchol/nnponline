@@ -30,8 +30,12 @@ export default function CoWorkView() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate all relevant queries to ensure proper updates across views
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks/date"] }); // For scheduler view
       toast({
         title: "Success",
         description: "Task accepted successfully",
