@@ -78,7 +78,7 @@ export function Navigation() {
               className={`w-full justify-start ${isActive("/") ? "bg-black text-white hover:bg-black hover:text-white [&>svg]:text-white" : ""}`}
             >
               <HomeIcon className="mr-2 h-4 w-4" />
-              Dashboard
+              Overview
             </Button>
           </Link>
           <Link href="/personal">
