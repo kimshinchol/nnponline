@@ -3,10 +3,24 @@ import { TaskList } from "@/components/task-list";
 import { useQuery } from "@tanstack/react-query";
 import { Task } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
 
 const TEAMS = ["PM", "CM", "CC", "AT", "MT"];
 
 export default function TeamView() {
+  const [location] = useLocation();
+  const [activeTeam, setActiveTeam] = useState("PM");
+
+  // Get active team from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const team = params.get("active");
+    if (team && TEAMS.includes(team)) {
+      setActiveTeam(team);
+    }
+  }, [location]);
+
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
   });
@@ -29,7 +43,7 @@ export default function TeamView() {
         <div className="max-w-6xl mx-auto">
           <div className="h-8 mb-8"></div>
 
-          <Tabs defaultValue="PM" className="w-full">
+          <Tabs value={activeTeam} onValueChange={setActiveTeam} className="w-full">
             <TabsList className="grid w-full grid-cols-5">
               {TEAMS.map((team) => (
                 <TabsTrigger key={team} value={team}>

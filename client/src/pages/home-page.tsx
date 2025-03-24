@@ -99,10 +99,10 @@ export default function HomePage() {
                       <CardContent className="py-2">
                         <div className="flex gap-4 items-center">
                           <div className="flex items-center gap-2">
-                            <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-medium">
+                            <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-medium">
                               {counts.notStarted}
                             </span>
-                            <span className="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center font-medium">
+                            <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-medium">
                               {counts.inProgress}
                             </span>
                             <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-medium">
