@@ -5,9 +5,13 @@ import { Task, InsertTask } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Share2, Pencil, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TaskForm } from "@/components/task-form";
+import { useState } from "react";
 
 export default function PersonalView() {
   const { toast } = useToast();
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/user"],
@@ -20,15 +24,27 @@ export default function PersonalView() {
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<Task> }) => {
       const res = await apiRequest("PATCH", `/api/tasks/${id}`, data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to update task");
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+      setEditingTask(null);
       toast({
         title: "Success",
         description: "Task updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update task",
+        variant: "destructive",
       });
     },
   });
@@ -47,7 +63,8 @@ export default function PersonalView() {
 
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/tasks/${id}`);
+      const res = await apiRequest("DELETE", `/api/tasks/${id}`);
+      if (!res.ok) throw new Error("Failed to delete task");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
@@ -115,10 +132,6 @@ export default function PersonalView() {
     },
   });
 
-  const handleEditTask = (taskId: number, updatedTask: Partial<Task>) => {
-    updateTaskMutation.mutate({ id: taskId, data: updatedTask });
-  };
-
   const handleStatusChange = (taskId: number, status: string) => {
     updateTaskStatusMutation.mutate({ id: taskId, status });
   };
@@ -135,7 +148,7 @@ export default function PersonalView() {
     {
       icon: <Pencil className="h-4 w-4" />,
       label: "Edit",
-      onClick: () => handleEditTask(task.id, task),
+      onClick: () => setEditingTask(task),
     },
     {
       icon: <Trash2 className="h-4 w-4" />,
@@ -160,7 +173,6 @@ export default function PersonalView() {
               tasks={tasks || []}
               onStatusChange={handleStatusChange}
               onDelete={handleDeleteTask}
-              onEdit={handleEditTask}
               onCreate={createTaskMutation.mutate}
               projects={projects || []}
               isLoading={tasksLoading}
@@ -171,6 +183,30 @@ export default function PersonalView() {
           </div>
         </div>
       </main>
+
+      {/* Edit Task Dialog */}
+      <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
+        <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          {editingTask && (
+            <TaskForm
+              onSubmit={async (data) => {
+                await updateTaskMutation.mutateAsync({
+                  id: editingTask.id,
+                  data: {
+                    ...data,
+                    isCoWork: false,
+                  },
+                });
+              }}
+              projects={projects || []}
+              initialData={editingTask}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
