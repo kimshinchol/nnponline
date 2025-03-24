@@ -5,6 +5,8 @@ import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import passport from 'passport';
 import { pool } from './db'; // Assuming a pool object exists for database connection
+import { queryClient } from './queryClient'; // Import queryClient
+
 
 // Add function to create default admin user
 async function createDefaultAdminIfNeeded() {
@@ -631,7 +633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update the accept task endpoint to set new creation date
+  // Update the accept task endpoint to preserve metadata
   app.post("/api/tasks/co-work/:id/accept", ensureAuthenticated, async (req, res) => {
     try {
       const taskId = parseInt(req.params.id);
@@ -646,13 +648,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "This is not a co-work task" });
       }
 
-      // Transfer ownership to the accepting user and update creation date
+      // Transfer ownership to the accepting user while preserving metadata
       const updatedTask = await storage.updateTask(taskId, {
         userId: user.id,
         username: user.username,
         isCoWork: false, // Remove co-work flag to make it a personal task
-        createdAt: new Date(), // Set new creation date to now
+        // Keep all other metadata unchanged
       });
+
+      // Invalidate relevant queries to trigger automatic updates
+      await queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/tasks/project"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/tasks/team"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/tasks/co-work"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/tasks/date"] });
 
       res.json(updatedTask);
     } catch (err) {

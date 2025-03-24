@@ -156,11 +156,19 @@ export class DatabaseStorage implements IStorage {
     if (teamUsers.length === 0) return [];
 
     const userIds = teamUsers.map(user => user.id);
-    return await db.select().from(tasks).where(sql`${tasks.userId} = ANY(${userIds})`);
+    // Include both personal and co-work tasks in team view
+    return await db
+      .select()
+      .from(tasks)
+      .where(sql`${tasks.userId} = ANY(${userIds}::int[]) AND ${tasks.isArchived} = false`);
   }
 
   async getProjectTasks(projectId: number): Promise<Task[]> {
-    return await db.select().from(tasks).where(eq(tasks.projectId, projectId));
+    // Include both personal and co-work tasks in project view
+    return await db
+      .select()
+      .from(tasks)
+      .where(sql`${tasks.projectId} = ${projectId} AND ${tasks.isArchived} = false`);
   }
 
   async updateTaskStatus(id: number, status: string): Promise<Task> {
@@ -177,11 +185,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTask(id: number, data: Partial<Task>): Promise<Task> {
+    // Get the current task first
+    const [currentTask] = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, id));
+
+    // Preserve metadata when updating
+    const updateData = {
+      ...data,
+      projectId: data.projectId || currentTask.projectId,
+      projectName: data.projectId ?
+        (await db.select().from(projects).where(eq(projects.id, data.projectId)))[0]?.name :
+        currentTask.projectName,
+      createdAt: currentTask.createdAt, // Preserve original creation date
+      dueDate: data.dueDate || currentTask.dueDate,
+      status: data.status || currentTask.status,
+    };
+
     const [task] = await db
       .update(tasks)
-      .set(data)
+      .set(updateData)
       .where(eq(tasks.id, id))
       .returning();
+
     return task;
   }
 
