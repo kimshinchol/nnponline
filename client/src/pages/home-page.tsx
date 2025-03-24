@@ -85,7 +85,7 @@ export default function HomePage() {
           {/* Team Section */}
           <div className="mt-12">
             <h2 className="text-lg font-medium mb-4">Team Overview</h2>
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {TEAMS.map((team, index) => {
                 const teamTasks = teamQueries[index].data;
                 const counts = getTeamTaskCounts(teamTasks);
@@ -93,24 +93,43 @@ export default function HomePage() {
                 return (
                   <Link key={team} href={`/team?active=${team}`}>
                     <Card className="hover:bg-accent transition-colors cursor-pointer">
-                      <CardHeader className="py-3">
-                        <CardTitle className="text-sm lg:text-base">{team}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="py-2">
-                        <div className="flex gap-4 items-center">
-                          <div className="flex items-center gap-2">
-                            <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-medium">
-                              {counts.notStarted}
-                            </span>
-                            <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-medium">
-                              {counts.inProgress}
-                            </span>
-                            <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-medium">
-                              {counts.completed}
-                            </span>
-                          </div>
+                      {/* Mobile: Left align team name, Right align status counts */}
+                      <div className="md:hidden flex items-center justify-between p-4">
+                        <CardTitle className="text-sm">{team}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-medium">
+                            {counts.notStarted}
+                          </span>
+                          <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-medium">
+                            {counts.inProgress}
+                          </span>
+                          <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-medium">
+                            {counts.completed}
+                          </span>
                         </div>
-                      </CardContent>
+                      </div>
+
+                      {/* Desktop: Center team name and stack status counts */}
+                      <div className="hidden md:block">
+                        <CardHeader className="py-3 text-center">
+                          <CardTitle className="text-sm lg:text-base">{team}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="py-2">
+                          <div className="flex justify-center">
+                            <div className="flex items-center gap-2">
+                              <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-medium">
+                                {counts.notStarted}
+                              </span>
+                              <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-medium">
+                                {counts.inProgress}
+                              </span>
+                              <span className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-medium">
+                                {counts.completed}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </div>
                     </Card>
                   </Link>
                 );
