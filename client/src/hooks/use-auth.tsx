@@ -16,6 +16,7 @@ type AuthContextType = {
   logoutMutation: UseMutationResult<void, Error, void>;
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
   registerAdminMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+  refreshSession: () => Promise<boolean>;
 };
 
 type LoginData = Pick<InsertUser, "username" | "password">;
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<SelectUser | undefined, Error>({
+  } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
@@ -43,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onSuccess: (user: SelectUser) => {
-      // Clear existing cache before setting new user data
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], user);
     },
@@ -56,13 +56,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/logout");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message);
+      }
+    },
+    onSuccess: () => {
+      queryClient.clear();
+      queryClient.setQueryData(["/api/user"], null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Logout failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },
     onSuccess: (response) => {
-      // Do not set user data on registration - require admin approval
       toast({
         title: "Registration successful",
         description: "Your account has been created. Please wait for an administrator to approve your account.",
@@ -83,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onSuccess: (user: SelectUser) => {
-      // Clear existing cache before setting new admin user data
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], user);
       toast({
@@ -100,23 +119,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
-    },
-    onSuccess: () => {
-      // Clear all cached data on logout
-      queryClient.clear();
-      queryClient.setQueryData(["/api/user"], null);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const refreshSession = async () => {
+    try {
+      const res = await apiRequest("POST", "/api/session/refresh");
+      if (!res.ok) {
+        throw new Error("Failed to refresh session");
+      }
+      await queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      return true;
+    } catch (error) {
+      console.error("Session refresh failed:", error);
+      return false;
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -128,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutMutation,
         registerMutation,
         registerAdminMutation,
+        refreshSession,
       }}
     >
       {children}

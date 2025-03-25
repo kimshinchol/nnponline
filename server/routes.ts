@@ -725,7 +725,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add logout route with proper error handling
+  // Add session refresh route
+  app.post("/api/session/refresh", (req, res) => {
+    if (req.isAuthenticated()) {
+      // Update session expiry
+      if (req.session) {
+        req.session.touch();
+      }
+      res.json({ message: "Session refreshed" });
+    } else {
+      res.status(401).json({ message: "Not authenticated" });
+    }
+  });
+
+  // Update logout route with better error handling
   app.post("/api/logout", (req, res) => {
     try {
       req.logout((err) => {
