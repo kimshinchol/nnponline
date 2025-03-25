@@ -289,8 +289,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allTasks = await storage.getUserTasks(req.user!.id);
 
       // Filter out archived tasks and co-work tasks
-      const activeTasks = allTasks.filter(task => 
-        !task.isArchived && 
+      const activeTasks = allTasks.filter(task =>
+        !task.isArchived &&
         !task.isCoWork // Exclude co-work tasks from regular task view
       );
 
@@ -722,6 +722,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Error moving task to co-work:", err);
       res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
+  // Add logout route with proper error handling
+  app.post("/api/logout", (req, res) => {
+    try {
+      req.logout((err) => {
+        if (err) {
+          console.error("Logout error:", err);
+          return res.status(500).json({ message: "Failed to logout" });
+        }
+        req.session.destroy((err) => {
+          if (err) {
+            console.error("Session destruction error:", err);
+            return res.status(500).json({ message: "Failed to clear session" });
+          }
+          res.clearCookie("connect.sid");
+          res.json({ message: "Logged out successfully" });
+        });
+      });
+    } catch (err) {
+      console.error("Unexpected logout error:", err);
+      res.status(500).json({ message: "An unexpected error occurred during logout" });
     }
   });
 
