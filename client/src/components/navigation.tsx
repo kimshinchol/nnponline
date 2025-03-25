@@ -95,7 +95,7 @@ export function Navigation() {
               className={`w-full justify-start ${isActive("/") ? activeClass : ""}`}
             >
               <HomeIcon className="mr-2 h-4 w-4" />
-              Overview
+              OVERVIEW
             </Button>
           </Link>
           <Link href="/personal">
@@ -104,7 +104,7 @@ export function Navigation() {
               className={`w-full justify-start ${isActive("/personal") ? activeClass : ""}`}
             >
               <UserIcon className="mr-2 h-4 w-4" />
-              Tasks
+              TASKS
             </Button>
           </Link>
           <Link href="/team">
@@ -113,7 +113,7 @@ export function Navigation() {
               className={`w-full justify-start ${isActive("/team") ? activeClass : ""}`}
             >
               <UsersIcon className="mr-2 h-4 w-4" />
-              Team
+              TEAM
             </Button>
           </Link>
           <Link href="/project">
@@ -122,7 +122,7 @@ export function Navigation() {
               className={`w-full justify-start ${isActive("/project") ? activeClass : ""}`}
             >
               <FolderIcon className="mr-2 h-4 w-4" />
-              Project
+              PROJECT
             </Button>
           </Link>
           <Link href="/scheduler">
@@ -131,7 +131,7 @@ export function Navigation() {
               className={`w-full justify-start ${isActive("/scheduler") ? activeClass : ""}`}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              Scheduler
+              SCHEDULER
             </Button>
           </Link>
           <Link href="/co-work">
@@ -140,7 +140,7 @@ export function Navigation() {
               className={`w-full justify-start relative ${isActive("/co-work") ? activeClass : ""}`}
             >
               <Share2Icon className="mr-2 h-4 w-4" />
-              Co-Work
+              CO-WORK
               {hasNewCoWorkTasks && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2">
                   <BellIcon
@@ -162,7 +162,7 @@ export function Navigation() {
                 className={`w-full justify-start ${isActive("/admin") ? activeClass : ""}`}
               >
                 <ShieldIcon className="mr-2 h-4 w-4" />
-                Admin
+                ADMIN
               </Button>
             </Link>
           )}
@@ -183,7 +183,7 @@ export function Navigation() {
             disabled={logoutMutation.isPending}
           >
             <LogOutIcon className="mr-2 h-4 w-4" />
-            Logout
+            LOGOUT
           </Button>
         </div>
       </nav>
