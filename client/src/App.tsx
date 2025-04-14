@@ -58,10 +58,8 @@ function App() {
         <div className="relative min-h-screen">
           <Router />
           <Toaster />
-          <InactivityOverlay 
-            timeout={5 * 60 * 1000} // 5 minutes
-            onReconnect={handleReconnect}
-          />
+          {/* Inactivity overlay disabled to prevent database connection issues */}
+          <InactivityOverlay onReconnect={handleReconnect} />
         </div>
       </AuthProvider>
     </QueryClientProvider>
