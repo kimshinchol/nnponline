@@ -16,7 +16,8 @@ async function createDefaultAdminIfNeeded() {
       await storage.createUser({
         username: "admin",
         password: hashedPassword,
-        email: "admin@example.com", // Add required email field
+        email: "admin@example.com",
+        team: "MT", // Added required team field
         isAdmin: true,
         isApproved: true
       });
@@ -738,22 +739,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update logout route with better error handling
+  // Updated logout route with improved error handling and database pool protection
   app.post("/api/logout", (req, res) => {
     try {
+      // First ensure the user is authenticated before attempting logout
+      if (!req.isAuthenticated()) {
+        return res.status(200).json({ message: "Not logged in" });
+      }
+      
       req.logout((err) => {
         if (err) {
           console.error("Logout error:", err);
           return res.status(500).json({ message: "Failed to logout" });
         }
-        req.session.destroy((err) => {
-          if (err) {
-            console.error("Session destruction error:", err);
-            return res.status(500).json({ message: "Failed to clear session" });
-          }
+        
+        // Safely destroy the session
+        if (req.session) {
+          req.session.destroy((err) => {
+            if (err) {
+              console.error("Session destruction error:", err);
+              return res.status(500).json({ message: "Failed to clear session" });
+            }
+            // Clear the cookie
+            res.clearCookie("connect.sid");
+            return res.json({ message: "Logged out successfully" });
+          });
+        } else {
+          // If no session exists, just return success
           res.clearCookie("connect.sid");
-          res.json({ message: "Logged out successfully" });
-        });
+          return res.json({ message: "Logged out successfully" });
+        }
       });
     } catch (err) {
       console.error("Unexpected logout error:", err);

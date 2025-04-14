@@ -13,7 +13,7 @@ type AuthContextType = {
   isLoading: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
+  logoutMutation: UseMutationResult<boolean, Error, void>; // Updated return type to boolean
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
   registerAdminMutation: UseMutationResult<SelectUser, Error, InsertUser>;
   refreshSession: () => Promise<boolean>;
@@ -58,21 +58,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/logout");
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message);
+      try {
+        const res = await apiRequest("POST", "/api/logout");
+        // Even if the server returns an error, we'll handle logging out client-side
+        // to avoid users getting stuck in an authenticated state
+        return res.ok;
+      } catch (error) {
+        console.error("Logout request failed:", error);
+        // Return false to indicate the API call failed
+        return false;
       }
     },
-    onSuccess: () => {
+    onSuccess: (succeeded) => {
+      // Always clear client state regardless of server response
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
+      
+      // If the server request failed, show a notification but still log out client-side
+      if (!succeeded) {
+        toast({
+          title: "주의",
+          description: "서버 로그아웃에 실패했지만, 로컬 세션은 정리되었습니다.",
+          variant: "default",
+        });
+      }
     },
     onError: (error: Error) => {
+      // Force client-side logout even on error
+      queryClient.clear();
+      queryClient.setQueryData(["/api/user"], null);
+      
       toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
+        title: "로그아웃 주의",
+        description: "서버 로그아웃 처리 중 오류가 발생했지만, 로컬 세션은 정리되었습니다.",
+        variant: "default",
       });
     },
   });
