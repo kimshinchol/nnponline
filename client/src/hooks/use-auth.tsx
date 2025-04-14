@@ -8,23 +8,31 @@ import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Type for login credentials
+type LoginData = Pick<InsertUser, "username" | "password">;
+
+// Type for logout result
+type LogoutResult = { success: boolean; message?: string };
+
+// Updated AuthContextType with appropriate types
 type AuthContextType = {
   user: SelectUser | null;
   isLoading: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
-  logoutMutation: UseMutationResult<boolean, Error, void>; // Updated return type to boolean
+  logoutMutation: UseMutationResult<LogoutResult, Error, void>; // Fixed return type
   registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
   registerAdminMutation: UseMutationResult<SelectUser, Error, InsertUser>;
   refreshSession: () => Promise<boolean>;
 };
 
-type LoginData = Pick<InsertUser, "username" | "password">;
-
+// Create context with null default value
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Query for user data
   const {
     data: user,
     error,
@@ -34,13 +42,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  const loginMutation = useMutation({
+  // Login mutation
+  const loginMutation = useMutation<SelectUser, Error, LoginData>({
     mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", window.location.pathname.includes('web_admin') ? "/api/web_admin/login" : "/api/login", credentials);
+      const isAdmin = window.location.pathname.includes('web_admin');
+      const endpoint = isAdmin ? "/api/web_admin/login" : "/api/login";
+      const res = await apiRequest("POST", endpoint, credentials);
+      
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message);
       }
+      
       return await res.json();
     },
     onSuccess: (user: SelectUser) => {
@@ -56,26 +69,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const logoutMutation = useMutation({
+  // Logout mutation with improved error handling
+  const logoutMutation = useMutation<LogoutResult, Error, void>({
     mutationFn: async () => {
       try {
         const res = await apiRequest("POST", "/api/logout");
-        // Even if the server returns an error, we'll handle logging out client-side
-        // to avoid users getting stuck in an authenticated state
-        return res.ok;
+        return { 
+          success: res.ok,
+          message: res.ok ? "Logged out successfully" : "Server logout failed" 
+        };
       } catch (error) {
         console.error("Logout request failed:", error);
-        // Return false to indicate the API call failed
-        return false;
+        return { 
+          success: false, 
+          message: "Connection error during logout" 
+        };
       }
     },
-    onSuccess: (succeeded) => {
+    onSuccess: (result) => {
       // Always clear client state regardless of server response
       queryClient.clear();
       queryClient.setQueryData(["/api/user"], null);
       
-      // If the server request failed, show a notification but still log out client-side
-      if (!succeeded) {
+      // Show notification only if there was a server-side issue
+      if (!result.success) {
         toast({
           title: "주의",
           description: "서버 로그아웃에 실패했지만, 로컬 세션은 정리되었습니다.",
@@ -96,7 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const registerMutation = useMutation({
+  // Registration mutation
+  const registerMutation = useMutation<SelectUser, Error, InsertUser>({
     mutationFn: async (credentials: InsertUser) => {
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
@@ -116,7 +134,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const registerAdminMutation = useMutation({
+  // Admin registration mutation
+  const registerAdminMutation = useMutation<SelectUser, Error, InsertUser>({
     mutationFn: async (credentials: InsertUser) => {
       const res = await apiRequest("POST", "/api/web_admin/register", credentials);
       return await res.json();
@@ -138,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Session refresh function
   const refreshSession = async () => {
     try {
       const res = await apiRequest("POST", "/api/session/refresh");
@@ -152,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Provide auth context to children
   return (
     <AuthContext.Provider
       value={{
@@ -170,6 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Hook for accessing auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

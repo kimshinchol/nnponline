@@ -36,6 +36,9 @@ export const tasks = pgTable("tasks", {
   projectName: text("project_name"),
   isCoWork: boolean("is_co_work").notNull().default(false),
   isArchived: boolean("is_archived").notNull().default(false),
+  // Track original creator for co-work tasks
+  originalUserId: integer("original_user_id"),
+  originalUsername: text("original_username"),
 });
 
 export const sessions = pgTable("session", {
