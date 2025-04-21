@@ -184,8 +184,7 @@ export default function SchedulerView() {
       <Navigation />
       <main className="flex-1 p-4 lg:p-8 lg:ml-64">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Schedule View</h1>
+          <div className="flex justify-end items-center mb-8">
             {user?.isAdmin && (
               <Button 
                 variant="outline" 
