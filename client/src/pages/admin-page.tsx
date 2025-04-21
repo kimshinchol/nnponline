@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,77 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { apiRequest, queryClient } from "@/lib/queryClient";
 import { UserManagement } from "@/components/user-management";
 import { Link } from "wouter";
 import { HomeIcon } from "lucide-react";
-import { Task } from "@shared/schema";
-
-type ArchiveFilters = {
-  before?: string;
-};
 
 export default function AdminPage() {
-  const { toast } = useToast();
-
-  // Query for archived tasks
-  const { data: archivedTasks, isLoading: isLoadingArchived } = useQuery<Task[]>({
-    queryKey: ["/api/tasks/archived"],
-    queryFn: async () => {
-      const response = await fetch("/api/tasks/archived");
-      if (!response.ok) throw new Error("Failed to fetch archived tasks");
-      return response.json();
-    },
-  });
-
-  // Archive tasks mutation
-  const archiveTasksMutation = useMutation({
-    mutationFn: async (filters: ArchiveFilters) => {
-      const response = await apiRequest("POST", "/api/tasks/archive", filters);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to archive tasks");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Tasks Archived",
-        description: "Selected tasks have been archived successfully.",
-      });
-      // Invalidate both the archived tasks query and the active tasks queries
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/archived"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tasks/user"] });
-      // Refresh the form
-      archiveForm.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Archive Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const archiveForm = useForm<ArchiveFilters>();
-
-  const onArchiveSubmit = (data: ArchiveFilters) => {
-    archiveTasksMutation.mutate(data);
-  };
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -95,92 +27,36 @@ export default function AdminPage() {
       {/* User Management Section */}
       <UserManagement />
 
-      {/* Archive Section */}
+      {/* System Information Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Archive Tasks</CardTitle>
-          <CardDescription>Archive tasks before a specific date</CardDescription>
+          <CardTitle>System Information</CardTitle>
+          <CardDescription>Information about the application</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...archiveForm}>
-            <form onSubmit={archiveForm.handleSubmit(onArchiveSubmit)} className="space-y-4">
-              <FormField
-                control={archiveForm.control}
-                name="before"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Archive tasks before</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormDescription>Select a date to archive all tasks created before that date</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type="submit"
-                disabled={archiveTasksMutation.isPending}
-                className="w-full md:w-auto"
-                size="lg"
-              >
-                {archiveTasksMutation.isPending ? "Archiving Tasks..." : "Archive Tasks"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-
-      {/* Archived Tasks Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Archived Tasks</CardTitle>
-          <CardDescription>View your archived tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoadingArchived ? (
-            <div className="text-center py-4">Loading archived tasks...</div>
-          ) : !archivedTasks?.length ? (
-            <div className="text-center py-4 text-muted-foreground">No archived tasks found</div>
-          ) : (
-            <div className="space-y-4">
-              {archivedTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="p-4 border rounded-lg bg-muted"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{task.title}</h3>
-                      <p className="text-sm text-muted-foreground">{task.description}</p>
-                    </div>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      task.status === "완료" ? "bg-green-100 text-green-800" :
-                      task.status === "작업중" ? "bg-yellow-100 text-yellow-800" :
-                      "bg-gray-100 text-gray-800"
-                    }`}>
-                      {task.status}
-                    </span>
-                  </div>
-                  <div className="mt-2 text-sm space-y-1">
-                    <div>
-                      <span className="text-muted-foreground">Project: </span>
-                      {task.projectName || "No Project"}
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Author: </span>
-                      {task.username || "Unknown"}
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Created: </span>
-                      {new Date(task.createdAt).toLocaleString()}
-                    </div>
-                  </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-medium text-lg">Application</h3>
+                <p className="text-sm text-muted-foreground mt-1">작업일지 관리 시스템</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-medium text-lg">Version</h3>
+                <p className="text-sm text-muted-foreground mt-1">1.0.0</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-medium text-lg">Last Updated</h3>
+                <p className="text-sm text-muted-foreground mt-1">{new Date().toLocaleDateString()}</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-medium text-lg">Status</h3>
+                <div className="flex items-center mt-1">
+                  <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                  <p className="text-sm text-muted-foreground">Active</p>
                 </div>
-              ))}
+              </div>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>
