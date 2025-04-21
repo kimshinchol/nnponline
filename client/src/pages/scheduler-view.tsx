@@ -5,13 +5,32 @@ import { Task, Project } from "@shared/schema";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useState } from "react";
-import { format, addDays } from "date-fns";
+import { format, addDays, parse } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogClose 
+} from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, DownloadCloud, Save, Trash2, Loader2, DatabaseIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { 
+  AlertCircle, 
+  DownloadCloud, 
+  Save, 
+  Trash2, 
+  Loader2, 
+  DatabaseIcon,
+  Calendar as CalendarIcon 
+} from "lucide-react";
 
 export default function SchedulerView() {
   const { user } = useAuth();
@@ -249,7 +268,7 @@ export default function SchedulerView() {
       
       {/* Backup Dialog */}
       <Dialog open={backupDialogOpen} onOpenChange={setBackupDialogOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Backup Tasks</DialogTitle>
             <DialogDescription>
@@ -258,38 +277,65 @@ export default function SchedulerView() {
           </DialogHeader>
           
           <div className="py-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <h3 className="mb-2 text-sm font-medium">Start Date</h3>
-                <div className="flex justify-center">
-                  <Calendar
-                    mode="single"
-                    selected={backupRange.from}
-                    onSelect={(date) => date && setBackupRange(prev => ({ ...prev, from: date }))}
-                    className="rounded-md border"
-                    styles={{
-                      caption_label: { fontSize: '0.9rem' },
-                      cell: { width: '32px', height: '32px' },
-                      button: { width: '30px', height: '30px', fontSize: '0.85rem' }
-                    }}
-                  />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !backupRange.from && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {backupRange.from ? (
+                        format(backupRange.from, "yyyy-MM-dd")
+                      ) : (
+                        <span>Select date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={backupRange.from}
+                      onSelect={(date) => date && setBackupRange(prev => ({ ...prev, from: date }))}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
+
               <div>
                 <h3 className="mb-2 text-sm font-medium">End Date</h3>
-                <div className="flex justify-center">
-                  <Calendar
-                    mode="single"
-                    selected={backupRange.to}
-                    onSelect={(date) => date && setBackupRange(prev => ({ ...prev, to: date }))}
-                    className="rounded-md border"
-                    styles={{
-                      caption_label: { fontSize: '0.9rem' },
-                      cell: { width: '32px', height: '32px' },
-                      button: { width: '30px', height: '30px', fontSize: '0.85rem' }
-                    }}
-                  />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !backupRange.to && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {backupRange.to ? (
+                        format(backupRange.to, "yyyy-MM-dd")
+                      ) : (
+                        <span>Select date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={backupRange.to}
+                      onSelect={(date) => date && setBackupRange(prev => ({ ...prev, to: date }))}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
@@ -333,7 +379,7 @@ export default function SchedulerView() {
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Exported Data?</DialogTitle>
             <DialogDescription>
@@ -345,7 +391,7 @@ export default function SchedulerView() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                This action is permanent and cannot be undone. All tasks from {format(backupRange.from, "MMMM d, yyyy")} to {format(backupRange.to, "MMMM d, yyyy")} will be deleted.
+                This action is permanent and cannot be undone. All tasks from {format(backupRange.from, "yyyy-MM-dd")} to {format(backupRange.to, "yyyy-MM-dd")} will be deleted.
               </AlertDescription>
             </Alert>
           </div>
