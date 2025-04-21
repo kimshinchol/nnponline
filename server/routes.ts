@@ -6,6 +6,7 @@ import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared
 import passport from 'passport';
 import { pool } from './db'; // Assuming a pool object exists for database connection
 import { queryClient } from './queryClient'; // Import queryClient
+import * as XLSX from 'xlsx'; // Import XLSX for Excel file generation
 
 // Add function to create default admin user
 async function createDefaultAdminIfNeeded() {
@@ -773,6 +774,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (err) {
       console.error("Unexpected logout error:", err);
       res.status(500).json({ message: "An unexpected error occurred during logout" });
+    }
+  });
+  
+  // Endpoint for exporting tasks as Excel file
+  app.get("/api/backup/tasks", ensureAdmin, async (req, res) => {
+    try {
+      // Parse date range from query parameters
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : null;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : null;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
+      }
+      
+      // Set end date to end of day
+      endDate.setHours(23, 59, 59, 999);
+      
+      // Get all tasks within the date range
+      const allTasks = await storage.getAllTasks();
+      const users = Array.from((await storage.getUsers()).values());
+      const projects = await storage.getProjects();
+      
+      // Get task creator usernames
+      const tasksWithDetails = allTasks
+        .filter(task => {
+          const taskDate = new Date(task.createdAt);
+          return taskDate >= startDate && taskDate <= endDate;
+        })
+        .map(task => {
+          const user = users.find(u => u.id === task.userId);
+          const project = projects.find(p => p.id === task.projectId);
+          
+          return {
+            ID: task.id,
+            Title: task.title,
+            Description: task.description || "",
+            Status: task.status,
+            Author: user?.username || "Unknown",
+            Team: user?.team || "Unknown",
+            Project: project?.name || "No Project",
+            CreatedAt: new Date(task.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+            DueDate: task.dueDate ? new Date(task.dueDate).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) : "",
+            IsCoWork: task.isCoWork ? "Yes" : "No",
+            IsArchived: task.isArchived ? "Yes" : "No"
+          };
+        });
+      
+      // Create workbook and worksheet
+      const worksheet = XLSX.utils.json_to_sheet(tasksWithDetails);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Tasks");
+      
+      // Auto-size columns
+      const colWidths = [
+        { wch: 5 },  // ID
+        { wch: 30 }, // Title
+        { wch: 40 }, // Description
+        { wch: 10 }, // Status
+        { wch: 15 }, // Author
+        { wch: 10 }, // Team
+        { wch: 25 }, // Project
+        { wch: 20 }, // CreatedAt
+        { wch: 20 }, // DueDate
+        { wch: 10 }, // IsCoWork
+        { wch: 10 }  // IsArchived
+      ];
+      worksheet["!cols"] = colWidths;
+      
+      // Generate Excel file
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+      
+      // Set headers for file download
+      res.setHeader('Content-Disposition', `attachment; filename=tasks_backup_${startDate.toISOString().split('T')[0]}_to_${endDate.toISOString().split('T')[0]}.xlsx`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      
+      // Send Excel file to client
+      res.send(excelBuffer);
+    } catch (err) {
+      console.error("Error generating backup:", err);
+      res.status(500).json({ message: "Failed to generate backup file" });
+    }
+  });
+  
+  // Endpoint for deleting tasks by date range
+  app.delete("/api/backup/tasks", ensureAdmin, async (req, res) => {
+    try {
+      // Parse date range from query parameters
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : null;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : null;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
+      }
+      
+      // Set end date to end of day
+      endDate.setHours(23, 59, 59, 999);
+      
+      // Get all tasks within the date range
+      const allTasks = await storage.getAllTasks();
+      
+      const tasksToDelete = allTasks.filter(task => {
+        const taskDate = new Date(task.createdAt);
+        return taskDate >= startDate && taskDate <= endDate;
+      });
+      
+      // Delete tasks
+      const deletePromises = tasksToDelete.map(task => storage.deleteTask(task.id));
+      await Promise.all(deletePromises);
+      
+      res.json({ 
+        message: "Tasks deleted successfully", 
+        count: tasksToDelete.length 
+      });
+    } catch (err) {
+      console.error("Error deleting tasks:", err);
+      res.status(500).json({ message: "Failed to delete tasks" });
     }
   });
 
