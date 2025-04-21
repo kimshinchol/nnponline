@@ -249,7 +249,7 @@ export default function SchedulerView() {
       
       {/* Backup Dialog */}
       <Dialog open={backupDialogOpen} onOpenChange={setBackupDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Backup Tasks</DialogTitle>
             <DialogDescription>
@@ -258,24 +258,38 @@ export default function SchedulerView() {
           </DialogHeader>
           
           <div className="py-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="mb-2 text-sm font-medium">Start Date</h3>
-                <Calendar
-                  mode="single"
-                  selected={backupRange.from}
-                  onSelect={(date) => date && setBackupRange(prev => ({ ...prev, from: date }))}
-                  className="rounded-md border"
-                />
+                <div className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={backupRange.from}
+                    onSelect={(date) => date && setBackupRange(prev => ({ ...prev, from: date }))}
+                    className="rounded-md border"
+                    styles={{
+                      caption_label: { fontSize: '0.9rem' },
+                      cell: { width: '32px', height: '32px' },
+                      button: { width: '30px', height: '30px', fontSize: '0.85rem' }
+                    }}
+                  />
+                </div>
               </div>
               <div>
                 <h3 className="mb-2 text-sm font-medium">End Date</h3>
-                <Calendar
-                  mode="single"
-                  selected={backupRange.to}
-                  onSelect={(date) => date && setBackupRange(prev => ({ ...prev, to: date }))}
-                  className="rounded-md border"
-                />
+                <div className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={backupRange.to}
+                    onSelect={(date) => date && setBackupRange(prev => ({ ...prev, to: date }))}
+                    className="rounded-md border"
+                    styles={{
+                      caption_label: { fontSize: '0.9rem' },
+                      cell: { width: '32px', height: '32px' },
+                      button: { width: '30px', height: '30px', fontSize: '0.85rem' }
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
@@ -319,7 +333,7 @@ export default function SchedulerView() {
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Delete Exported Data?</DialogTitle>
             <DialogDescription>
