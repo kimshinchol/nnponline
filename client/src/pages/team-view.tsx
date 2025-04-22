@@ -5,21 +5,28 @@ import { Task } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 const TEAMS = ["PM", "CM", "CC", "AT", "MT"];
 
 export default function TeamView() {
   const [location] = useLocation();
   const [activeTeam, setActiveTeam] = useState("PM");
+  const { user } = useAuth();
 
-  // Get active team from URL params
+  // Set initial tab to user's team or get from URL
   useEffect(() => {
+    // First check URL params
     const params = new URLSearchParams(window.location.search);
-    const team = params.get("active");
-    if (team && TEAMS.includes(team)) {
-      setActiveTeam(team);
+    const teamParam = params.get("active");
+    
+    if (teamParam && TEAMS.includes(teamParam)) {
+      setActiveTeam(teamParam);
+    } else if (user?.team && TEAMS.includes(user.team)) {
+      // If no URL param, use user's team
+      setActiveTeam(user.team);
     }
-  }, [location]);
+  }, [location, user]);
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
