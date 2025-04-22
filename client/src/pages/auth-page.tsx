@@ -38,15 +38,15 @@ export default function AuthPage() {
     }
   }, [user, setLocation]);
 
-  const loginForm = useForm<Pick<InsertUser, "username" | "password">>({
-    resolver: zodResolver(insertUserSchema.pick({ username: true, password: true })),
+  const loginForm = useForm<Pick<InsertUser, "email" | "password">>({
+    resolver: zodResolver(insertUserSchema.pick({ email: true, password: true })),
   });
 
   const registerForm = useForm<InsertUser>({
     resolver: zodResolver(insertUserSchema),
   });
 
-  const onLogin = (data: Pick<InsertUser, "username" | "password">) => {
+  const onLogin = (data: Pick<InsertUser, "email" | "password">) => {
     loginMutation.mutate(data);
   };
 
@@ -81,11 +81,11 @@ export default function AuthPage() {
             <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
               <FormField
                 control={loginForm.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input placeholder="ID" {...field} />
+                      <Input type="email" placeholder="이메일" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -97,7 +97,7 @@ export default function AuthPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input type="password" placeholder="PASSWORD" {...field} />
+                      <Input type="password" placeholder="비밀번호" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,7 +108,7 @@ export default function AuthPage() {
                 className="w-full bg-gray-600 hover:bg-gray-700"
                 disabled={loginMutation.isPending}
               >
-                {loginMutation.isPending ? "Logging in..." : "Login"}
+                {loginMutation.isPending ? "로그인 중..." : "로그인"}
               </Button>
             </form>
           </Form>
@@ -117,7 +117,7 @@ export default function AuthPage() {
             <Dialog open={showRegister} onOpenChange={setShowRegister}>
               <DialogTrigger asChild>
                 <Button variant="link" className="text-gray-600">
-                  CREATE ACCOUNT
+                  계정 생성
                 </Button>
               </DialogTrigger>
               <DialogContent>
