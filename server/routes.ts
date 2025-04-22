@@ -146,7 +146,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...userData,
         password: hashedPassword,
         isAdmin: true,
-        isApproved: true
+        isApproved: true,
+        role: "admin"
       });
 
       req.login(user, (err) => {

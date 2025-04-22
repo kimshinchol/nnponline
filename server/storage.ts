@@ -96,7 +96,10 @@ export class DatabaseStorage implements IStorage {
   async approveUser(id: number): Promise<User> {
     const [user] = await db
       .update(users)
-      .set({ isApproved: true })
+      .set({ 
+        isApproved: true,
+        role: "user" // Set default role to "user" when approving
+      })
       .where(eq(users.id, id))
       .returning();
     return user;
