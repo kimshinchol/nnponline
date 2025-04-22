@@ -48,6 +48,10 @@ export default function SchedulerView() {
 
   const { data: projects } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
+    select: (data) => {
+      // 프로젝트를 한글 '가나다' 순으로 정렬
+      return data ? [...data].sort((a, b) => a.name.localeCompare(b.name, 'ko')) : [];
+    }
   });
 
   const { data: tasks, isLoading } = useQuery<Task[]>({
@@ -58,6 +62,21 @@ export default function SchedulerView() {
       return res.json();
     },
     enabled: !!selectedDate,
+    select: (data) => {
+      if (!data) return [];
+      
+      // 상태 정렬 우선순위: 작업전 → 작업중 → 완료
+      const statusOrder: {[key: string]: number} = { "작업전": 0, "작업중": 1, "완료": 2 };
+      
+      return [...data].sort((a, b) => {
+        // 상태 비교
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        
+        // 같은 상태면 생성일자 기준으로 정렬 (최신이 위로 오래된 것이 아래로)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
   });
 
   // Filter tasks for the selected date and organize by project
