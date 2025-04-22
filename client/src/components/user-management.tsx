@@ -127,6 +127,9 @@ export function UserManagement() {
         .omit({ password: true })
         .partial()
     ),
+    defaultValues: {
+      role: "user"
+    }
   });
 
   const handleApprove = (userId: number) => {
@@ -139,6 +142,7 @@ export function UserManagement() {
       username: user.username,
       email: user.email,
       team: user.team,
+      role: user.role || "user", // Default to 'user' if role is not defined
     });
   };
 
@@ -222,22 +226,29 @@ export function UserManagement() {
                   <Badge>{user.team}</Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={user.isAdmin ? "destructive" : "default"}>
-                    {user.isAdmin ? "Admin" : "User"}
+                  <Badge 
+                    variant={
+                      user.role === "admin" ? "destructive" : 
+                      user.role === "former" ? "secondary" : 
+                      "default"
+                    }
+                    className={user.role === "former" ? "text-gray-500" : ""}
+                  >
+                    {user.role || (user.isAdmin ? "admin" : "user")}
                   </Badge>
                 </TableCell>
                 <TableCell className="space-x-2">
                   <Button
                     variant="outline"
                     onClick={() => handleEdit(user)}
-                    disabled={user.isAdmin}
+                    disabled={user.role === "admin" || user.isAdmin}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleDelete(user.id)}
-                    disabled={deleteMutation.isPending || user.isAdmin}
+                    disabled={deleteMutation.isPending || user.role === "admin" || user.isAdmin}
                   >
                     Delete
                   </Button>
@@ -297,6 +308,26 @@ export function UserManagement() {
                     <FormLabel>Team</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <FormControl>
+                      <select
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        {...field}
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <option value="former">Former</option>
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

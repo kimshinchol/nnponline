@@ -20,7 +20,8 @@ async function createDefaultAdminIfNeeded() {
         email: "admin@example.com",
         team: "MT", // Added required team field
         isAdmin: true,
-        isApproved: true
+        isApproved: true,
+        role: "admin"
       });
       console.log("Created default admin user");
     }
@@ -104,7 +105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...userData,
         password: hashedPassword,
         isAdmin: false,
-        isApproved: false
+        isApproved: false,
+        role: "user"
       });
 
       res.status(201).json({
