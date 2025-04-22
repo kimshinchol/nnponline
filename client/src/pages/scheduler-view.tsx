@@ -417,7 +417,7 @@ export default function SchedulerView() {
           <DialogFooter className="sm:justify-between">
             <DialogClose asChild>
               <Button type="button" variant="secondary">
-                Keep Data
+                데이터 유지
               </Button>
             </DialogClose>
             <Button 
@@ -429,12 +429,12 @@ export default function SchedulerView() {
               {isDeleting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Deleting...</span>
+                  <span>삭제 중...</span>
                 </>
               ) : (
                 <>
                   <Trash2 className="h-4 w-4" />
-                  <span>Delete Data</span>
+                  <span>데이터 삭제</span>
                 </>
               )}
             </Button>
