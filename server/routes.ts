@@ -321,6 +321,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 사용자의 최근 10개 태스크를 가져오는 API 엔드포인트
+  app.get("/api/tasks/recent", ensureAuthenticated, async (req, res) => {
+    try {
+      const allTasks = await storage.getUserTasks(req.user!.id);
+      
+      // Filter out archived tasks and co-work tasks
+      const activeTasks = allTasks.filter(task => 
+        !task.isArchived && 
+        !task.isCoWork
+      );
+      
+      // Sort by creation date, newest first
+      const sortedTasks = [...activeTasks].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      // Return only the 10 most recent tasks
+      const recentTasks = sortedTasks.slice(0, 10);
+      
+      res.json(recentTasks);
+    } catch (err) {
+      res.status(400).json({ message: (err as Error).message });
+    }
+  });
+
   function isTaskFromToday(task: any): boolean {
     const kstOffset = 9 * 60;
     // 수락된 co-work 태스크의 경우, acceptedAt을 기준 날짜로 사용

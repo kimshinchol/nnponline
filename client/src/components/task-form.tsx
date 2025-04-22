@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Copy } from "lucide-react";
 
 interface TaskFormProps {
   onSubmit: (data: InsertTask) => void;
@@ -37,7 +39,7 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork }: TaskFormProps) {
-  const [showPreviousTasks, setShowPreviousTasks] = useState(false);
+  const [showRecentTasks, setShowRecentTasks] = useState(false);
 
   const form = useForm<InsertTask>({
     resolver: zodResolver(insertTaskSchema),
@@ -50,16 +52,17 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
     },
   });
 
-  const { data: previousTasks, isLoading: loadingPreviousTasks } = useQuery<Task[]>({
-    queryKey: ["/api/tasks/previous"],
-    enabled: showPreviousTasks,
+  // 최근 10개 태스크를 가져오는 쿼리
+  const { data: recentTasks, isLoading: loadingRecentTasks } = useQuery<Task[]>({
+    queryKey: ["/api/tasks/recent"],
+    enabled: showRecentTasks,
   });
 
   const handleCopyTask = (task: Task) => {
     form.setValue("title", task.title);
     form.setValue("description", task.description || "");
     form.setValue("projectId", task.projectId || projects[0]?.id || 0);
-    setShowPreviousTasks(false);
+    setShowRecentTasks(false);
   };
 
   const handleSubmit = (data: InsertTask) => {
@@ -71,36 +74,45 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
     });
   };
 
+  // 프로젝트 이름 조회 함수
+  const getProjectName = (projectId: number) => {
+    const project = projects.find(p => p.id === projectId);
+    return project?.name || "알 수 없음";
+  };
+
   return (
     <>
-      <Dialog open={showPreviousTasks} onOpenChange={setShowPreviousTasks}>
-        <DialogContent>
+      <Dialog open={showRecentTasks} onOpenChange={setShowRecentTasks}>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Last Tasks</DialogTitle>
+            <DialogTitle>최근 작업 복사</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            {loadingPreviousTasks ? (
-              <p className="text-sm text-muted-foreground">Loading previous tasks...</p>
-            ) : previousTasks?.length ? (
-              previousTasks.map((task) => (
-                <Button
-                  key={task.id}
-                  variant="outline"
-                  className="w-full justify-start text-left"
-                  onClick={() => handleCopyTask(task)}
-                >
-                  <div>
-                    <div className="font-medium">{task.title}</div>
-                    {task.description && (
-                      <div className="text-sm text-muted-foreground">{task.description}</div>
-                    )}
-                  </div>
-                </Button>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">No previous tasks found.</p>
-            )}
-          </div>
+          <ScrollArea className="h-[300px] pr-4">
+            <div className="space-y-2">
+              {loadingRecentTasks ? (
+                <p className="text-sm text-muted-foreground">최근 작업 불러오는 중...</p>
+              ) : recentTasks?.length ? (
+                recentTasks.map((task) => (
+                  <Button
+                    key={task.id}
+                    variant="outline"
+                    className="w-full justify-start text-left flex items-start h-auto py-2 px-3"
+                    onClick={() => handleCopyTask(task)}
+                  >
+                    <div className="flex-1 overflow-hidden">
+                      <div className="font-medium text-primary mb-1 truncate">{task.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {getProjectName(task.projectId)}
+                      </div>
+                    </div>
+                    <Copy className="h-4 w-4 ml-2 flex-shrink-0 text-muted-foreground" />
+                  </Button>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">최근 작업 내역이 없습니다.</p>
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
@@ -111,9 +123,9 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>제목</FormLabel>
                 <FormControl>
-                  <Input placeholder="Task title" {...field} />
+                  <Input placeholder="작업 제목" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -125,10 +137,10 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>내용</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Task description"
+                    placeholder="작업 내용"
                     {...field}
                     value={field.value || ""}
                   />
@@ -143,7 +155,7 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
             name="projectId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Project (Required)</FormLabel>
+                <FormLabel>프로젝트 (필수)</FormLabel>
                 <Select
                   onValueChange={(value) => field.onChange(Number(value))}
                   value={field.value?.toString()}
@@ -151,7 +163,7 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a project" />
+                      <SelectValue placeholder="프로젝트 선택" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -172,12 +184,12 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => setShowPreviousTasks(true)}
+              onClick={() => setShowRecentTasks(true)}
             >
-              Copy Task
+              작업 복사
             </Button>
             <Button type="submit" className="flex-1" disabled={isLoading}>
-              {isLoading ? "Saving..." : initialData ? "Update Task" : "Create Task"}
+              {isLoading ? "저장 중..." : initialData ? "작업 수정" : "작업 생성"}
             </Button>
           </div>
         </form>
