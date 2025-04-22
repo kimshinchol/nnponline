@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   isApproved: boolean("is_approved").notNull().default(false),
   isDeleted: boolean("is_deleted").notNull().default(false),
   deletedAt: timestamp("deleted_at"),
+  role: text("role").notNull().default("user"), // 'admin', 'user', 'former'
 });
 
 export const projects = pgTable("projects", {
@@ -55,6 +56,7 @@ export const insertUserSchema = createInsertSchema(users).extend({
     "Password must contain uppercase, lowercase, number and special character"
   ),
   team: z.enum(["PM", "CM", "CC", "AT", "MT"]),
+  role: z.enum(["admin", "user", "former"]).default("user"),
 });
 
 export const insertProjectSchema = createInsertSchema(projects);

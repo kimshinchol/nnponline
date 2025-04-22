@@ -194,6 +194,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Your account is pending approval. Please wait for an administrator to approve your account."
         });
       }
+      
+      // Check if user is a former employee (role: 'former')
+      if (user.role === 'former') {
+        return res.status(403).json({
+          message: "Your account has been deactivated. Please contact an administrator."
+        });
+      }
 
       next();
     } catch (err) {
