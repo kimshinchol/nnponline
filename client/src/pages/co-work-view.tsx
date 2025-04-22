@@ -33,9 +33,9 @@ export default function CoWorkView() {
   const { data: tasks = [], isLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/co-work"],
     select: (data) => {
-      // Co-work 작업은 생성일자 기준으로 정렬 (오래된 것이 아래로)
+      // Co-work 작업은 생성일자 기준으로 정렬 (최신 것이 위로)
       return [...data].sort((a, b) => 
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     }
   });

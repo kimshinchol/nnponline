@@ -141,17 +141,20 @@ export function Navigation() {
             >
               <Share2Icon className="mr-2 h-4 w-4" />
               CO-WORK
-              {hasNewCoWorkTasks && (
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <BellIcon
-                    className={`h-4 w-4 ${
-                      isActive("/co-work")
-                        ? "text-white" // White when menu is active (gray background)
-                        : "text-red-500" // Red when menu is inactive (white background)
-                    }`}
-                  />
-                </div>
-              )}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
+                <BellIcon
+                  className={`h-4 w-4 ${
+                    isActive("/co-work")
+                      ? "text-white" // White when menu is active (gray background)
+                      : "text-red-500" // Red when menu is inactive (white background)
+                  }`}
+                />
+                {coWorkTasks.length > 0 && (
+                  <span className="ml-1 font-bold text-red-500 text-sm">
+                    {coWorkTasks.length}
+                  </span>
+                )}
+              </div>
             </Button>
           </Link>
           {/* Show Admin link only for admin users */}
