@@ -40,21 +40,25 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy({
+      usernameField: 'email', // Change this to use email instead of username
+      passwordField: 'password'
+    }, async (email, password, done) => {
       try {
-        const user = await storage.getUserByUsername(username);
+        // Try to find user by email first
+        const user = await storage.getUserByEmail(email);
         if (!user) {
-          console.log("User not found:", username);
-          return done(null, false, { message: "Invalid username or password" });
+          console.log("User not found by email:", email);
+          return done(null, false, { message: "잘못된 이메일 또는 비밀번호" });
         }
 
         const isValid = await comparePasswords(password, user.password);
         if (!isValid) {
-          console.log("Invalid password for user:", username);
-          return done(null, false, { message: "Invalid username or password" });
+          console.log("Invalid password for user:", email);
+          return done(null, false, { message: "잘못된 이메일 또는 비밀번호" });
         }
 
-        console.log("Login successful for user:", username);
+        console.log("Login successful for user:", user.username);
         return done(null, user);
       } catch (err) {
         console.error("Login error:", err);
