@@ -145,7 +145,7 @@ export default function CoWorkView() {
               <DialogTrigger asChild>
                 <Button size="sm" className="text-sm">
                   <Plus className="h-4 w-4 mr-1" />
-                  New Co-Work Task
+                  업무요청등록
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">

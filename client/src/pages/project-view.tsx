@@ -153,7 +153,7 @@ export default function ProjectView() {
               <DialogTrigger asChild>
                 <Button size="sm" className="text-sm">
                   <Plus className="h-4 w-4 mr-1" />
-                  Edit Project
+                  프로젝트등록
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-[min(calc(100vw-2rem),425px)]">

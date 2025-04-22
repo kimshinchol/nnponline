@@ -132,7 +132,7 @@ export function TaskList({
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              새 작업
+              업무등록
             </Button>
           )}
         </div>
