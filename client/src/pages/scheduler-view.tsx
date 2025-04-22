@@ -288,16 +288,16 @@ export default function SchedulerView() {
       <Dialog open={backupDialogOpen} onOpenChange={setBackupDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Backup Tasks</DialogTitle>
+            <DialogTitle>작업 백업</DialogTitle>
             <DialogDescription>
-              Select a date range to backup tasks as an Excel file
+              Excel 파일로 내보낼 작업의 날짜 범위를 선택해 주세요
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4 space-y-4">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <h3 className="mb-2 text-sm font-medium">Start Date</h3>
+                <h3 className="mb-2 text-sm font-medium">시작 날짜</h3>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -311,7 +311,7 @@ export default function SchedulerView() {
                       {backupRange.from ? (
                         format(backupRange.from, "yyyy-MM-dd")
                       ) : (
-                        <span>Select date</span>
+                        <span>날짜 선택</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -327,7 +327,7 @@ export default function SchedulerView() {
               </div>
 
               <div>
-                <h3 className="mb-2 text-sm font-medium">End Date</h3>
+                <h3 className="mb-2 text-sm font-medium">종료 날짜</h3>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -341,7 +341,7 @@ export default function SchedulerView() {
                       {backupRange.to ? (
                         format(backupRange.to, "yyyy-MM-dd")
                       ) : (
-                        <span>Select date</span>
+                        <span>날짜 선택</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -361,7 +361,7 @@ export default function SchedulerView() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  This will export tasks created between {format(backupRange.from, "MMMM d, yyyy")} and {format(backupRange.to, "MMMM d, yyyy")}.
+                  {format(backupRange.from, "yyyy년 MM월 dd일")}부터 {format(backupRange.to, "yyyy년 MM월 dd일")}까지 생성된 작업을 내보냅니다.
                 </AlertDescription>
               </Alert>
             </div>
@@ -370,7 +370,7 @@ export default function SchedulerView() {
           <DialogFooter className="sm:justify-between">
             <DialogClose asChild>
               <Button type="button" variant="secondary">
-                Cancel
+                취소
               </Button>
             </DialogClose>
             <Button 
@@ -382,12 +382,12 @@ export default function SchedulerView() {
               {isExporting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Exporting...</span>
+                  <span>내보내는 중...</span>
                 </>
               ) : (
                 <>
                   <DownloadCloud className="h-4 w-4" />
-                  <span>Download</span>
+                  <span>다운로드</span>
                 </>
               )}
             </Button>
@@ -399,9 +399,9 @@ export default function SchedulerView() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Exported Data?</DialogTitle>
+            <DialogTitle>내보낸 데이터를 삭제할까요?</DialogTitle>
             <DialogDescription>
-              Would you like to delete the exported tasks from the database?
+              데이터베이스에서 내보낸 작업들을 삭제하시겠습니까?
             </DialogDescription>
           </DialogHeader>
           
@@ -409,7 +409,7 @@ export default function SchedulerView() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                This action is permanent and cannot be undone. All tasks from {format(backupRange.from, "yyyy-MM-dd")} to {format(backupRange.to, "yyyy-MM-dd")} will be deleted.
+                이 작업은 영구적이며 취소할 수 없습니다. {format(backupRange.from, "yyyy년 MM월 dd일")}부터 {format(backupRange.to, "yyyy년 MM월 dd일")}까지의 모든 작업이 삭제됩니다.
               </AlertDescription>
             </Alert>
           </div>
