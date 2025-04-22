@@ -28,10 +28,6 @@ export default function CoWorkView() {
 
   const { data: projects } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
-    select: (data) => {
-      // 프로젝트를 한글 '가나다' 순으로 정렬
-      return data ? [...data].sort((a, b) => a.name.localeCompare(b.name, 'ko')) : [];
-    }
   });
 
   const { data: tasks = [], isLoading } = useQuery<Task[]>({
