@@ -47,15 +47,28 @@ export default function ProjectView() {
 
   const { data: projects, isLoading: projectsLoading } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/projects"],
+    select: (data) => {
+      // 프로젝트를 한글 '가나다' 순으로 정렬
+      return data ? [...data].sort((a, b) => a.name.localeCompare(b.name, 'ko')) : [];
+    }
   });
 
   const { data: tasks, isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/project"],
     select: (data) => {
-      // Sort tasks by creation date, newest first
-      return data ? [...data].sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      ) : [];
+      if (!data) return [];
+      
+      // 상태 정렬 우선순위: 작업전 → 작업중 → 완료
+      const statusOrder: {[key: string]: number} = { "작업전": 0, "작업중": 1, "완료": 2 };
+      
+      return [...data].sort((a, b) => {
+        // 상태 비교
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        
+        // 같은 상태면 생성일자 기준으로 정렬 (최신이 위로 오래된 것이 아래로)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     }
   });
 

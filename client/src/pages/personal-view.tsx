@@ -27,10 +27,17 @@ export default function PersonalView() {
   const { data: tasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
     queryKey: ["/api/tasks/user"],
     select: (data) => {
-      // Sort tasks by creation date, newest first
-      return [...data].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      // 정렬 우선순위: 1. 상태 (작업전 → 작업중 → 완료), 2. 상태가 같을 경우 생성일자 오름차순(오래된 것이 아래로)
+      const statusOrder: {[key: string]: number} = { "작업전": 0, "작업중": 1, "완료": 2 };
+      
+      return [...data].sort((a, b) => {
+        // 상태 비교
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        
+        // 같은 상태면 생성일자 기준으로 정렬 (최신이 위로 오래된 것이 아래로)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     }
   });
 
