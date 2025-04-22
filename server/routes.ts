@@ -249,8 +249,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      if (user.isAdmin) {
-        return res.status(403).json({ message: "Cannot delete admin users" });
+      // 특별히 admin 계정 보호
+      if (user.username === "admin" || user.email === "admin@example.com") {
+        return res.status(403).json({ message: "Cannot delete the default admin user" });
       }
 
       await storage.deleteUser(userId);
@@ -269,8 +270,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      if (user.isAdmin) {
-        return res.status(403).json({ message: "Cannot modify admin users" });
+      // 특별히 admin 계정 보호
+      if (user.username === "admin" || user.email === "admin@example.com") {
+        return res.status(403).json({ message: "Cannot modify the default admin user" });
       }
 
       const updatedUser = await storage.updateUser(userId, req.body);

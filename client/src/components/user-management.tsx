@@ -241,14 +241,14 @@ export function UserManagement() {
                   <Button
                     variant="outline"
                     onClick={() => handleEdit(user)}
-                    disabled={user.role === "admin" || user.isAdmin}
+                    disabled={user.username === "admin" || (user.email === "admin@example.com")}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleDelete(user.id)}
-                    disabled={deleteMutation.isPending || user.role === "admin" || user.isAdmin}
+                    disabled={deleteMutation.isPending || user.username === "admin" || (user.email === "admin@example.com")}
                   >
                     Delete
                   </Button>
