@@ -314,16 +314,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(filteredTasks);
       }
 
-      const todaysTasks = activeTasks.filter(task => isTaskFromToday(new Date(task.createdAt)));
+      const todaysTasks = activeTasks.filter(task => isTaskFromToday(task));
       res.json(todaysTasks);
     } catch (err) {
       res.status(400).json({ message: (err as Error).message });
     }
   });
 
-  function isTaskFromToday(taskDate: Date): boolean {
+  function isTaskFromToday(task: any): boolean {
     const kstOffset = 9 * 60;
-    const taskKST = new Date(taskDate.getTime() + kstOffset * 60000);
+    // 수락된 co-work 태스크의 경우, acceptedAt을 기준 날짜로 사용
+    const referenceDate = task.acceptedAt ? new Date(task.acceptedAt) : new Date(task.createdAt);
+    const taskKST = new Date(referenceDate.getTime() + kstOffset * 60000);
     const nowKST = new Date(Date.now() + kstOffset * 60000);
 
     return (
@@ -348,8 +350,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         kstFilterDate.setHours(0, 0, 0, 0);
 
         const filteredTasks = activeTasks.filter(task => {
-          const taskDate = new Date(task.createdAt);
-          const kstTaskDate = new Date(taskDate.getTime() + kstOffset * 60000);
+          // 수락된 태스크는 acceptedAt 날짜를 기준으로 필터링
+          const dateToCheck = task.acceptedAt ? new Date(task.acceptedAt) : new Date(task.createdAt);
+          const kstTaskDate = new Date(dateToCheck.getTime() + kstOffset * 60000);
           kstTaskDate.setHours(0, 0, 0, 0);
 
           // Add isCoWork check to filter out co-work tasks
@@ -422,7 +425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activeTasks = allTasks.filter(task => !task.isArchived);
 
       const tasks = activeTasks.filter(task => {
-        const isTaskFromCurrentDay = isTaskFromToday(new Date(task.createdAt));
+        const isTaskFromCurrentDay = isTaskFromToday(task);
         const isTeamMemberTask = teamUserIds.includes(task.userId);
         // Exclude co-work tasks
         const isNotCoWork = !task.isCoWork;
@@ -509,7 +512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectTasks = activeTasks
         .filter(task =>
           task.projectId !== null &&
-          isTaskFromToday(new Date(task.createdAt)) &&
+          isTaskFromToday(task) &&
           !task.isCoWork // Exclude co-work tasks
         )
         .map(task => {
