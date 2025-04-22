@@ -142,18 +142,28 @@ export function Navigation() {
               <Share2Icon className="mr-2 h-4 w-4" />
               CO-WORK
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center">
-                <BellIcon
-                  className={`h-4 w-4 ${
-                    isActive("/co-work")
-                      ? "text-white" // White when menu is active (gray background)
-                      : "text-red-500" // Red when menu is inactive (white background)
-                  }`}
-                />
-                {coWorkTasks.length > 0 && (
-                  <span className="ml-1 font-bold text-red-500 text-sm">
-                    {coWorkTasks.length}
-                  </span>
-                )}
+                <div className={`flex items-center rounded-md px-1.5 py-0.5 ${
+                  isActive("/co-work")
+                    ? "bg-white" // 활성화된 상태에서는 흰색 배경
+                    : "bg-red-500" // 비활성화된 상태에서는 빨간색 배경
+                }`}>
+                  <BellIcon
+                    className={`h-3.5 w-3.5 ${
+                      isActive("/co-work")
+                        ? "text-red-500" // 활성화된 상태에서는 빨간색 아이콘
+                        : "text-white" // 비활성화된 상태에서는 흰색 아이콘
+                    }`}
+                  />
+                  {coWorkTasks.length > 0 && (
+                    <span className={`ml-0.5 font-bold text-xs ${
+                      isActive("/co-work")
+                        ? "text-red-500" // 활성화된 상태에서는 빨간색 텍스트
+                        : "text-white" // 비활성화된 상태에서는 흰색 텍스트
+                    }`}>
+                      {coWorkTasks.length}
+                    </span>
+                  )}
+                </div>
               </div>
             </Button>
           </Link>
