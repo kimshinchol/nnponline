@@ -39,6 +39,8 @@ export const tasks = pgTable("tasks", {
   // Track original creator for co-work tasks
   originalUserId: integer("original_user_id"),
   originalUsername: text("original_username"),
+  // Track when a co-work task was accepted
+  acceptedAt: timestamp("accepted_at"),
 });
 
 export const sessions = pgTable("session", {

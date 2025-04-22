@@ -657,6 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         username: user.username,
         isCoWork: false, // Remove co-work flag to make it a personal task
+        acceptedAt: new Date(), // Record when the task was accepted
         // Keep all other metadata unchanged
       });
 
