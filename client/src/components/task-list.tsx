@@ -132,7 +132,7 @@ export function TaskList({
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              New Task
+              새 작업
             </Button>
           )}
         </div>
@@ -140,12 +140,12 @@ export function TaskList({
           {alwaysShowHeader && (
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[25%]">Title</TableHead>
-                <TableHead className="w-[30%] hidden sm:table-cell">Description</TableHead>
-                <TableHead className="w-[15%]">Status</TableHead>
-                {showProject && <TableHead className="w-[15%] hidden sm:table-cell">Project</TableHead>}
-                {showAuthor && <TableHead className="w-[15%] hidden sm:table-cell">Author</TableHead>}
-                {showActions && <TableHead className="w-[15%]">Actions</TableHead>}
+                <TableHead className="w-[25%]">제목</TableHead>
+                <TableHead className="w-[30%] hidden sm:table-cell">내용</TableHead>
+                <TableHead className="w-[15%]">상태</TableHead>
+                {showProject && <TableHead className="w-[15%] hidden sm:table-cell">프로젝트</TableHead>}
+                {showAuthor && <TableHead className="w-[15%] hidden sm:table-cell">작성자</TableHead>}
+                {showActions && <TableHead className="w-[15%]">작업</TableHead>}
               </TableRow>
             </TableHeader>
           )}
@@ -256,7 +256,7 @@ export function TaskList({
       <Dialog open={showNewTaskDialog} onOpenChange={setShowNewTaskDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create New Task</DialogTitle>
+            <DialogTitle>새 작업 생성</DialogTitle>
           </DialogHeader>
           <TaskForm
             onSubmit={(data) => {

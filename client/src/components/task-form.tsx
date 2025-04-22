@@ -75,7 +75,8 @@ export function TaskForm({ onSubmit, projects, isLoading, initialData, isCoWork 
   };
 
   // 프로젝트 이름 조회 함수
-  const getProjectName = (projectId: number) => {
+  const getProjectName = (projectId: number | null) => {
+    if (!projectId) return "알 수 없음";
     const project = projects.find(p => p.id === projectId);
     return project?.name || "알 수 없음";
   };
