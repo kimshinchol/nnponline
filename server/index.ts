@@ -88,6 +88,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 
   try {
     // Test database connection
+    const getPool = getPool;
     const client = await getPool().connect();
     client.release();
     consecutiveFailures = 0;
