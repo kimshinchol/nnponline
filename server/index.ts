@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { getPool, recreatePool } from "./db";
-console.log("🔍 getPool debug:", getPool);
 import { Server } from "http";
 
 const app = express();
@@ -25,19 +24,16 @@ let isSleeping = false;
 app.use((req: Request, res: Response, next: NextFunction) => {
   lastActivityTimestamp = Date.now();
 
-  // If application was sleeping, reconnect to database
   if (isSleeping) {
-    log('Waking up from sleep mode...');
-    // Recreate the pool and attempt to connect
+    log("Waking up from sleep mode...");
     const newPool = recreatePool();
-    newPool.connect().then(client => {
+    newPool.connect().then((client) => {
       client.release();
       isSleeping = false;
-      log('Successfully reconnected to database');
       next();
-    }).catch(err => {
-      console.error('Error reconnecting to database:', err);
-      res.status(503).json({ 
+    }).catch((err) => {
+      console.error("Error reconnecting to database:", err);
+      res.status(503).json({
         message: "Service is starting up, please try again in a few seconds",
         retryAfter: 5
       });
@@ -51,35 +47,29 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 setInterval(() => {
   const idleTime = Date.now() - lastActivityTimestamp;
   if (idleTime >= IDLE_TIMEOUT && !isSleeping) {
-    log('Application idle timeout reached, entering sleep mode');
-    // Release all connections but keep the pool alive
-    getPool.end().then(() => {
+    log("Application idle timeout reached, entering sleep mode");
+    getPool().end().then(() => {
       isSleeping = true;
-      log('Database connections released, application in sleep mode');
-    }).catch(err => {
-      console.error('Error releasing database connections:', err);
+      log("Database connections released, application in sleep mode");
+    }).catch((err) => {
+      console.error("Error releasing database connections:", err);
     });
   }
-}, 60000); // Check every minute
+}, 60000);
 
 // Connection health check middleware
 app.use(async (req: Request, res: Response, next: NextFunction) => {
-  // Skip health check endpoint to prevent infinite loop
-  if (req.path === '/health') {
-    return next();
-  }
+  if (req.path === "/health") return next();
 
-  // Check if circuit is open
   if (isCircuitOpen) {
     const now = Date.now();
     if (now - lastFailureTime > CIRCUIT_RESET_TIMEOUT) {
-      // Try to reset circuit
       isCircuitOpen = false;
       consecutiveFailures = 0;
-      log('Circuit breaker reset, attempting to restore service');
+      log("Circuit breaker reset, attempting to restore service");
     } else {
-      log('Circuit breaker is open, rejecting request');
-      return res.status(503).json({ 
+      log("Circuit breaker is open, rejecting request");
+      return res.status(503).json({
         message: "Service temporarily unavailable, please try again later",
         retryAfter: Math.ceil((CIRCUIT_RESET_TIMEOUT - (now - lastFailureTime)) / 1000)
       });
@@ -87,7 +77,6 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    // Test database connection
     const client = await getPool().connect();
     client.release();
     consecutiveFailures = 0;
@@ -95,14 +84,12 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
   } catch (err) {
     consecutiveFailures++;
     log(`Database connection failed, consecutive failures: ${consecutiveFailures}`);
-
     if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
       isCircuitOpen = true;
       lastFailureTime = Date.now();
-      log('Circuit breaker opened due to multiple consecutive failures');
+      log("Circuit breaker opened due to multiple consecutive failures");
     }
-
-    res.status(503).json({ 
+    return res.status(503).json({
       message: "Service temporarily unavailable, please try again later",
       retryAfter: 30
     });
@@ -124,11 +111,12 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      const logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        log(`${logLine} :: ${JSON.stringify(capturedJsonResponse)}`);
+      } else {
+        log(logLine);
       }
-      log(logLine);
     }
   });
 
@@ -154,19 +142,19 @@ app.use((req, res, next) => {
           const client = await getPool().connect();
           client.release();
           connected = true;
-          log('Database connection successful');
+          log("Database connection successful");
         } catch (err) {
           attempts++;
           log(`Database connection attempt ${attempts} failed: ${err}`);
           if (attempts < maxAttempts) {
-            log('Retrying in 5 seconds...');
+            log("Retrying in 5 seconds...");
             await new Promise(resolve => setTimeout(resolve, 5000));
           }
         }
       }
 
       if (!connected) {
-        throw new Error('Failed to establish database connection after multiple attempts');
+        throw new Error("Failed to establish database connection after multiple attempts");
       }
 
       log("Registering routes...");
@@ -175,7 +163,7 @@ app.use((req, res, next) => {
 
       // Enhanced error handling middleware
       app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-        console.error('Server error:', err);
+        console.error("Server error:", err);
         const status = err.status || err.statusCode || 500;
         const message = err.message || "Internal Server Error";
         res.status(status).json({ message });
@@ -190,11 +178,10 @@ app.use((req, res, next) => {
         log("Static file serving setup complete");
       }
 
-      // ALWAYS serve the app on port 5000 for Replit deployment
       return new Promise((resolve) => {
         log("Attempting to bind to port 5000...");
         server?.listen(5000, "0.0.0.0", () => {
-          log(`Server running on port 5000`);
+          log("Server running on port 5000");
           resolve(true);
         });
       });
@@ -207,14 +194,13 @@ app.use((req, res, next) => {
   while (retries > 0) {
     const success = await startServer();
     if (success) {
-      // Enhance graceful shutdown
-      process.on('SIGTERM', () => {
-        console.log('SIGTERM received. Starting graceful shutdown...');
+      process.on("SIGTERM", () => {
+        console.log("SIGTERM received. Starting graceful shutdown...");
         if (server) {
           server.close(() => {
-            console.log('Server closed. Shutting down pool...');
+            console.log("Server closed. Shutting down pool...");
             getPool().end().then(() => {
-              console.log('Pool has ended. Process will now exit.');
+              console.log("Pool has ended. Process will now exit.");
               process.exit(0);
             });
           });
@@ -222,17 +208,13 @@ app.use((req, res, next) => {
           process.exit(1);
         }
       });
-
-      // Successfully started server
       break;
     }
-
     retries--;
     if (retries === 0) {
       console.error("Failed to start server after multiple attempts");
       process.exit(1);
     }
-
     console.log(`Retrying server startup in 5 seconds... (${retries} attempts remaining)`);
     await new Promise(resolve => setTimeout(resolve, 5000));
   }
