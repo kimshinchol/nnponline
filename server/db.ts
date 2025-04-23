@@ -42,7 +42,7 @@ export const recreatePool = () => {
 export const getPool = (): Pool => {
   if (!poolInstance) {
     poolInstance = createPool();
-    setupPoolListeners(poolInstance);
+    // setupPoolListeners(poolInstance); // ⛔ 일단 꺼둡니다
   }
   return poolInstance;
 };
