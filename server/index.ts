@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { pool, recreatePool } from "./db";
+import { getPool, recreatePool } from "./db";
 import { Server } from "http";
 
 const app = express();
@@ -150,7 +150,7 @@ app.use((req, res, next) => {
 
       while (!connected && attempts < maxAttempts) {
         try {
-          const client = await pool.connect();
+          const client = await getPool().connect();
           client.release();
           connected = true;
           log('Database connection successful');
