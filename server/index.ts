@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { getPool, recreatePool } from "./db";
+console.log("🔍 getPool debug:", getPool);
 import { Server } from "http";
 
 const app = express();
