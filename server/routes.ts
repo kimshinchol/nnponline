@@ -4,7 +4,7 @@ import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import passport from 'passport';
-import { pool } from './db'; // Assuming a pool object exists for database connection
+import { getpool } from './db'; // Assuming a pool object exists for database connection
 import { queryClient } from './queryClient'; // Import queryClient
 import * as XLSX from 'xlsx'; // Import XLSX for Excel file generation
 
@@ -50,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/health", async (req, res) => {
     try {
       // Test database connection
-      const client = await pool.connect();
+      const client = await getpool.connect();
       client.release();
       res.json({ status: "healthy", message: "Server is running and database is connected" });
     } catch (err) {
@@ -781,7 +781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Updated logout route with improved error handling and database pool protection
+  // Updated logout route with improved error handling and database getpool protection
   app.post("/api/logout", (req, res) => {
     try {
       // First ensure the user is authenticated before attempting logout
