@@ -52,7 +52,7 @@ setInterval(() => {
   if (idleTime >= IDLE_TIMEOUT && !isSleeping) {
     log('Application idle timeout reached, entering sleep mode');
     // Release all connections but keep the pool alive
-    pool.end().then(() => {
+    getpool.end().then(() => {
       isSleeping = true;
       log('Database connections released, application in sleep mode');
     }).catch(err => {
@@ -87,7 +87,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 
   try {
     // Test database connection
-    const client = await pool.connect();
+    const client = await getpool.connect();
     client.release();
     consecutiveFailures = 0;
     next();
@@ -212,7 +212,7 @@ app.use((req, res, next) => {
         if (server) {
           server.close(() => {
             console.log('Server closed. Shutting down pool...');
-            pool.end().then(() => {
+            getpool.end().then(() => {
               console.log('Pool has ended. Process will now exit.');
               process.exit(0);
             });
