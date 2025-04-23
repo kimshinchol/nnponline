@@ -4,7 +4,7 @@ import { setupAuth, hashPassword } from "./auth";
 import { storage } from "./storage";
 import { insertTaskSchema, insertProjectSchema, insertUserSchema } from "@shared/schema";
 import passport from 'passport';
-import { getpool } from './db'; // Assuming a pool object exists for database connection
+import { getPool } from './db';
 import { queryClient } from './queryClient'; // Import queryClient
 import * as XLSX from 'xlsx'; // Import XLSX for Excel file generation
 
