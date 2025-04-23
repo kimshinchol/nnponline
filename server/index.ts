@@ -87,7 +87,7 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 
   try {
     // Test database connection
-    const client = await getPool.connect();
+    const client = await getPool().connect();
     client.release();
     consecutiveFailures = 0;
     next();
@@ -212,7 +212,7 @@ app.use((req, res, next) => {
         if (server) {
           server.close(() => {
             console.log('Server closed. Shutting down pool...');
-            getPool.end().then(() => {
+            getPool().end().then(() => {
               console.log('Pool has ended. Process will now exit.');
               process.exit(0);
             });
