@@ -34,7 +34,7 @@ const createPool = () => new Pool({
 // recreatePool: 기존 pool을 재생성
 export const recreatePool = () => {
   poolInstance = createPool();
-  setupPoolListeners(poolInstance); // 새 pool에도 이벤트 연결
+  // setupPoolListeners(poolInstance); // ⛔️ 일단 꺼둡니다
   return poolInstance;
 };
 
